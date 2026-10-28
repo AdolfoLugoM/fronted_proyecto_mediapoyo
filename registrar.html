@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Crear cuenta</title>
+    
+    <link rel="stylesheet" href="CSS/Base.css">
+    <link rel="stylesheet" href="CSS/Auth.css">
+    <link rel="stylesheet" href="CSS/Registrar.css">
+</head>
+
+<body>
+    <main>
+        <div class="tarjeta-login">
+            <h2>Crear cuenta</h2>
+            
+            <!-- Al registrarse, lleva al login para iniciar sesión -->
+            <form id="formulario-registro" action="login.html">
+                
+                <div class="fila-campos">
+                    <div class="campo">
+                        <label for="nombre">Nombre(s)</label>
+                        <input type="text" id="nombre" name="nombre" required autocomplete="given-name">
+                    </div>
+                    <div class="campo">
+                        <label for="apellidos">Apellidos</label>
+                        <input type="text" id="apellidos" name="apellidos" required autocomplete="family-name">
+                    </div>
+                </div>
+                
+                <label for="correo">Correo</label>
+                <input type="email" id="correo" name="correo" required placeholder="correo@gmail.com" autocomplete="email">
+                
+                <label for="clave">Contraseña</label>
+                <input type="password" id="clave" name="clave" required minlength="8" placeholder="••••••••" autocomplete="new-password">
+                <span class="ayuda-campo">Mínimo 8 caracteres</span>
+                
+                <label for="confirmar-clave">Confirmar contraseña</label>
+                <input type="password" id="confirmar-clave" name="confirmar-clave" required placeholder="••••••••" autocomplete="new-password">
+                
+                <button type="submit" class="boton-ingresar">Registrarse</button>
+            </form>
+            
+            <p class="enlace-alterno">¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a></p>
+        </div>
+    </main>
+    
+    <script src="JS/registrar.js"></script>
+</body>
+</html>

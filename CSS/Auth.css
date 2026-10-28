@@ -1,0 +1,108 @@
+/* ==========================================================================
+AUTH (compartido por Login y Registrar): fondo centrado, tarjeta, campos y botón
+Orden de carga: Base.css, Auth.css y después Login.css o Registrar.css
+========================================================================== */
+
+body {
+    margin: 0;
+    padding: 20px 0;
+    color: var(--color-texto);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+main {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+/* ===== TARJETA ===== */
+.tarjeta-login {
+    background-color: var(--color-fondo);
+    padding: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--color-borde);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.tarjeta-login h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+    color: var(--color-texto);
+}
+
+/* ===== CAMPOS ===== */
+.tarjeta-login label {
+    display: block;
+    margin: 14px 0 6px;
+    font-size: 0.85rem;
+    color: var(--color-placeholder);
+}
+
+.tarjeta-login input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--color-borde);
+    border-radius: 6px;
+    background-color: var(--color-superficie);
+    color: var(--color-texto);
+    font: inherit;
+}
+
+.tarjeta-login input:focus {
+    outline: 2px solid var(--color-acento);
+    border-color: transparent;
+}
+
+/* Borde rojo solo después de que la persona interactúa con el campo */
+.tarjeta-login input:user-invalid {
+    border-color: var(--color-error);
+}
+
+/* ===== BOTÓN ===== */
+.boton-ingresar {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    border: 0;
+    border-radius: 6px;
+    background-color: var(--color-acento);
+    color: var(--color-superficie);
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.boton-ingresar:hover {
+    background-color: var(--color-acento-hover);
+}
+
+/* ===== ENLACE ENTRE LOGIN Y REGISTRO ===== */
+.enlace-alterno {
+    margin: 20px 0 0;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--color-placeholder);
+}
+
+.enlace-alterno a {
+    color: var(--color-acento);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.enlace-alterno a:hover {
+    color: var(--color-acento-hover);
+    text-decoration: underline;
+}
+
+.login-error {
+    margin: 12px 0 0;
+    font-size: 0.85rem;
+    text-align: center;
+    color: var(--color-error);
+}

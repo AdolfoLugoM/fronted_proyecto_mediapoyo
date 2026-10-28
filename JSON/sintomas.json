@@ -1,0 +1,210 @@
+{
+    "meta": { "simulado": true, "descripcion": "Catálogo de síntomas de ejemplo" },
+    "sintomas": [
+        { 
+            "id": 1, 
+            "nombre": "Fiebre", 
+            "categoria": "General" 
+        },
+        { 
+            "id": 2, 
+            "nombre": "Escalofríos", 
+            "categoria": "General" 
+        },
+        { 
+            "id": 3, 
+            "nombre": "Fatiga", 
+            "categoria": "General" 
+        },
+        { 
+            "id": 4, 
+            "nombre": "Malestar general", 
+            "categoria": "General" 
+        },
+        { 
+            "id": 5, 
+            "nombre": "Pérdida de apetito", 
+            "categoria": "General" 
+        },
+        { 
+            "id": 6, 
+            "nombre": "Pérdida de peso", 
+            "categoria": "General" 
+        },
+        { 
+            "id": 7, 
+            "nombre": "Sudoración nocturna", 
+            "categoria": "General" 
+        },
+        { 
+            "id": 8, 
+            "nombre": "Tos", 
+            "categoria": "Respiratorio" 
+        },
+        { 
+            "id": 9, 
+            "nombre": "Dificultad para respirar", 
+            "categoria": "Respiratorio" 
+        },
+        { 
+            "id": 10, 
+            "nombre": "Dolor de garganta", 
+            "categoria": "Respiratorio" 
+        },
+        { 
+            "id": 11, 
+            "nombre": "Congestión nasal", 
+            "categoria": "Respiratorio" 
+        },
+        { 
+            "id": 12, 
+            "nombre": "Estornudos", 
+            "categoria": "Respiratorio" 
+        },
+        { 
+            "id": 13, 
+            "nombre": "Silbidos al respirar", 
+            "categoria": "Respiratorio" 
+        },
+        { 
+            "id": 14, 
+            "nombre": "Náuseas", 
+            "categoria": "Digestivo" 
+        },
+        { 
+            "id": 15, 
+            "nombre": "Vómito", 
+            "categoria": "Digestivo" 
+        },
+        { 
+            "id": 16, 
+            "nombre": "Diarrea", 
+            "categoria": "Digestivo" 
+        },
+        { 
+            "id": 17, 
+            "nombre": "Dolor abdominal", 
+            "categoria": "Digestivo" 
+        },
+        { 
+            "id": 18, 
+            "nombre": "Estreñimiento", 
+            "categoria": "Digestivo" 
+        },
+        { 
+            "id": 19, 
+            "nombre": "Acidez", 
+            "categoria": "Digestivo" 
+        },
+        { 
+            "id": 20, 
+            "nombre": "Dolor de cabeza", 
+            "categoria": "Neurológico" 
+        },
+        { 
+            "id": 21, 
+            "nombre": "Mareo", 
+            "categoria": "Neurológico" 
+        },
+        { 
+            "id": 22, 
+            "nombre": "Hormigueo", 
+            "categoria": "Neurológico" 
+        },
+        { 
+            "id": 23, 
+            "nombre": "Pérdida del olfato", 
+            "categoria": "Neurológico" 
+        },
+        { 
+            "id": 24, 
+            "nombre": "Pérdida del gusto", 
+            "categoria": "Neurológico" 
+        },
+        { 
+            "id": 25, 
+            "nombre": "Dolor muscular", 
+            "categoria": "Musculoesquelético" 
+        },
+        { 
+            "id": 26, 
+            "nombre": "Dolor articular", 
+            "categoria": "Musculoesquelético" 
+        },
+        { 
+            "id": 27, 
+            "nombre": "Dolor de espalda", 
+            "categoria": "Musculoesquelético" 
+        },
+        { 
+            "id": 28, 
+            "nombre": "Rigidez", 
+            "categoria": "Musculoesquelético" 
+        },
+        { 
+            "id": 29, 
+            "nombre": "Erupción cutánea", 
+            "categoria": "Piel" 
+        },
+        { 
+            "id": 30, 
+            "nombre": "Picazón", 
+            "categoria": "Piel" 
+        },
+        { 
+            "id": 31, 
+            "nombre": "Piel amarillenta", 
+            "categoria": "Piel" 
+        },
+        { 
+            "id": 32, 
+            "nombre": "Dolor detrás de los ojos", 
+            "categoria": "Ojos y oídos" 
+        },
+        { 
+            "id": 33, 
+            "nombre": "Ojos rojos", 
+            "categoria": "Ojos y oídos" 
+        },
+        {
+            "id": 34, 
+            "nombre": "Visión borrosa", 
+            "categoria": "Ojos y oídos" 
+        },
+        { 
+            "id": 35, 
+            "nombre": "Dolor de oído", 
+            "categoria": "Ojos y oídos" 
+        },
+        { 
+            "id": 36, 
+            "nombre": "Palpitaciones", 
+            "categoria": "Cardiovascular" 
+        },
+        { 
+            "id": 37, 
+            "nombre": "Dolor de pecho", 
+            "categoria": "Cardiovascular" 
+        },
+        { 
+            "id": 38, 
+            "nombre": "Hinchazón de piernas", 
+            "categoria": "Cardiovascular" 
+        },
+        { 
+            "id": 39, 
+            "nombre": "Dolor al orinar", 
+            "categoria": "Urinario" 
+        },
+        { 
+            "id": 40, 
+            "nombre": "Orina frecuente", 
+            "categoria": "Urinario" 
+        },
+        { 
+            "id": 41, 
+            "nombre": "Chorro por los dos lados", 
+            "categoria": "Digestivo"
+        }
+    ]
+}

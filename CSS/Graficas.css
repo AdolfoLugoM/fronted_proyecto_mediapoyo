@@ -1,0 +1,79 @@
+/* ==========================================================================
+GRÁFICAS: estilos de la vista inicial (#vista-inicio)
+========================================================================== */
+
+/* Fila de controles (selector de enfermedad + nota) */
+.controles-graficas {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.controles-graficas label {
+    font-size: 0.85rem;
+    color: var(--color-placeholder);
+}
+
+.controles-graficas select {
+    padding: 10px;
+    border: 1px solid var(--color-borde);
+    border-radius: 6px;
+    background-color: var(--color-superficie);
+    color: var(--color-texto);
+    font: inherit;
+}
+
+.controles-graficas select:focus {
+    outline: 2px solid var(--color-acento);
+    border-color: transparent;
+}
+
+.nota-datos {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--color-placeholder);
+}
+
+/* Dos columnas: la gráfica de líneas ocupa toda la fila y barras y pastel van debajo, lado a lado */
+.rejilla-graficas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.tarjeta-grafica--ancha {
+    grid-column: 1 / -1;
+}
+
+.tarjeta-grafica {
+    min-width: 0;                     /* permite que el canvas se encoja dentro del grid */
+    padding: 16px;
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 12px;
+}
+
+.tarjeta-grafica h3 {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    color: var(--color-texto);
+}
+
+/* Chart.js necesita un contenedor con altura definida y position: relative */
+.contenedor-lienzo {
+    position: relative;
+    height: 320px;
+}
+
+.mensaje-graficas {
+    margin: 0 0 16px;
+    color: var(--color-error);
+}
+
+@media (max-width: 900px) {
+    .rejilla-graficas {
+        grid-template-columns: 1fr;
+    }
+}

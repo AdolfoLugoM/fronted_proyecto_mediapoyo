@@ -1,0 +1,36 @@
+/* ========================================================================== BODY (index): estructura general del área de contenido y cambio de vistas ========================================================================== */
+
+h1 {
+    color: #ffffff;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+/* Área de contenido, con el espacio reservado para el sidebar */
+main {
+    margin-left: 300px;
+    padding: 24px 32px;
+    padding-top: 0;
+    transition: margin-left 0.3s ease;
+    position: relative;
+}
+
+/* Sidebar minimizado: el contenido se pega al carril de íconos */
+main.colapsado {
+    margin-left: 64px !important;
+    padding-left: 10px;
+}
+
+/* ===== VISTAS DENTRO DE <main> (una activa a la vez) ===== */
+.vista { display: none; }
+.vista.activa { display: block; }
+
+/* ===== MÓVILES ===== */
+@media (max-width: 700px) {
+    main {
+        margin-left: 0;
+        padding: 20px 16px;
+        padding-top: 60px;              /* deja espacio al botón flotante de menú */
+    }
+}

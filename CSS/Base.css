@@ -1,0 +1,36 @@
+/* ========================================================================== BASE: se carga PRIMERO en todas las páginas (paleta, reinicio y fondo) ========================================================================== */
+
+/* paleta de colores oscura */
+:root {
+    --color-fondo: #1e293b;
+    --color-superficie: #0f172a;
+    --color-texto: #ffffff;
+    --color-acento: #38bdf8;
+    --color-acento-hover: #7dd3fc;
+    --color-borde: #475569;
+    --color-placeholder: #cbd5e1;
+    --color-error: #ef4444;
+    
+    /* Distancia desde arriba a la que empieza la fila de 44px (hamburguesa, navegador y carril de íconos) */
+    --eje-superior: 24px;
+}
+
+/* paleta de colores clara */
+/* :root {
+    --color-fondo: #f8fafc;
+    --color-superficie: #eeeeee;
+    --color-texto: #1E293B;
+    --color-acento: #0EA5E9;
+    --color-acento-hover: #4dc6fe;
+    --color-borde: #E2E8F0;
+    --color-placeholder: #94A3B8;
+} */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--color-superficie);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}

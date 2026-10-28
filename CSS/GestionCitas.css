@@ -1,0 +1,169 @@
+/* ========================================================================== GESTIÓN DE CITAS: calendario (FullCalendar) y ventanas de la cita ========================================================================== */
+
+/* Aviso temporal sobre el calendario */
+.mensaje-citas {
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: var(--color-texto);
+}
+
+.tarjeta-calendario {
+    padding: 16px;
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 12px;
+}
+
+/* ===== TEMA OSCURO DE FULLCALENDAR (usa tus variables de color) ===== */
+#vista-gestion-citas .fc {
+    --fc-page-bg-color: var(--color-fondo);
+    --fc-neutral-bg-color: var(--color-superficie);
+    --fc-neutral-text-color: var(--color-placeholder);
+    --fc-border-color: var(--color-borde);
+    --fc-today-bg-color: rgba(56, 189, 248, 0.12);
+    --fc-button-bg-color: var(--color-superficie);
+    --fc-button-border-color: var(--color-borde);
+    --fc-button-text-color: var(--color-texto);
+    --fc-button-hover-bg-color: var(--color-borde);
+    --fc-button-hover-border-color: var(--color-borde);
+    --fc-button-active-bg-color: var(--color-acento);
+    --fc-button-active-border-color: var(--color-acento);
+    --fc-event-bg-color: var(--color-acento);
+    --fc-event-border-color: var(--color-acento);
+    --fc-event-text-color: var(--color-superficie);
+    --fc-list-event-hover-bg-color: rgba(56, 189, 248, 0.08);
+    color: var(--color-texto);
+}
+
+#vista-gestion-citas .fc a {
+    color: inherit;
+    text-decoration: none;
+}
+
+#vista-gestion-citas .fc .fc-toolbar-title {
+    font-size: 1.2rem;
+    text-transform: capitalize;
+}
+
+/* Botón de vista activa con texto oscuro para que contraste con el celeste */
+#vista-gestion-citas .fc .fc-button-primary:not(:disabled).fc-button-active {
+    color: var(--color-superficie);
+}
+
+#vista-gestion-citas .fc .fc-daygrid-day:hover {
+    background-color: rgba(56, 189, 248, 0.06);
+    cursor: pointer;
+}
+
+/* Las citas se pueden abrir con un clic */
+#vista-gestion-citas .fc .fc-event {
+    cursor: pointer;
+}
+
+/* Citas que ya pasaron: se ven apagadas (se pueden abrir, pero no cambiar) */
+#vista-gestion-citas .fc .cita-pasada {
+    opacity: 0.55;
+}
+
+/* Contenido de cada cita */
+.cita-evento {
+    display: flex;
+    flex-direction: column;
+    padding: 2px 4px;
+    overflow: hidden;
+    font-size: 0.75rem;
+    line-height: 1.25;
+}
+
+.cita-evento strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ===== VENTANA DE LA CITA (reutiliza el modal de Alertas.css) ===== */
+.modal-cita {
+    max-width: 420px;
+    text-align: left;
+}
+
+.modal-cita h3 {
+    text-align: center;
+}
+
+.modal-cita #cita-fecha-texto {
+    margin: 0 0 8px;
+    text-align: center;
+    text-transform: capitalize;
+}
+
+/* Nombre y CURP del paciente al editar o ver una cita */
+.modal-cita .cita-paciente {
+    margin: 0 0 4px;
+    padding: 8px 12px;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    text-align: center;
+    color: var(--color-texto);
+}
+
+.modal-cita label {
+    display: block;
+    margin: 14px 0 6px;
+    font-size: 0.85rem;
+    color: var(--color-placeholder);
+}
+
+.modal-cita input,
+.modal-cita select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--color-borde);
+    border-radius: 6px;
+    background-color: var(--color-superficie);
+    color: var(--color-texto);
+    font: inherit;
+}
+
+.modal-cita input:focus,
+.modal-cita select:focus {
+    outline: 2px solid var(--color-acento);
+    border-color: transparent;
+}
+
+.modal-cita input:user-invalid,
+.modal-cita select:user-invalid {
+    border-color: var(--color-error);
+}
+
+/* Hora de una cita pasada: se ve, pero no se puede cambiar */
+.modal-cita input:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.modal-cita .cita-error {
+    margin: 14px 0 0;
+    font-size: 0.85rem;
+    color: var(--color-error);
+}
+
+.modal-cita .modal-botones-logout {
+    margin-top: 20px;
+}
+
+/* Con tres botones (Eliminar / Cancelar / Guardar), Eliminar queda separado a la izquierda */
+.modal-cita #btn-eliminar-cita {
+    flex: none;
+    margin-right: auto;
+}
+
+/* display:flex del botón le gana al atributo hidden; esto lo vuelve a ocultar */
+.modal-cita .btn-modal[hidden] {
+    display: none;
+}
