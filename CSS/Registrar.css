@@ -1,0 +1,34 @@
+/* ==========================================================================
+REGISTRAR (crear cuenta): solo lo propio de esta página
+========================================================================== */
+
+/* Tarjeta un poco más ancha para poner dos campos por fila */
+main {
+    max-width: 480px;
+}
+
+/* Nombre y apellidos en la misma fila */
+.fila-campos {
+    display: flex;
+    gap: 16px;
+}
+
+.fila-campos .campo {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Texto de ayuda debajo de un campo */
+.ayuda-campo {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--color-placeholder);
+}
+
+@media (max-width: 480px) {
+    .fila-campos {
+        flex-direction: column;
+        gap: 0;
+    }
+}

@@ -1,0 +1,153 @@
+/* ==========================================================================
+    CONSULTA: vista #vista-consulta (se abre al guardar un paciente nuevo)
+    Reutiliza las clases del formulario de RegistroPaciente.css
+    (.tarjeta-formulario, .fila-formulario, .campo, .acciones-formulario)
+========================================================================== */
+
+/* Centrada en el espacio que deja la barra superior, igual que "Nuevo paciente" */
+#vista-consulta.activa {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - var(--eje-superior) - 44px - 24px - 24px);
+}
+
+#vista-consulta .tarjeta-formulario {
+    width: 100%;
+}
+
+/* Datos del paciente al que pertenece la consulta */
+.resumen-paciente {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 4px 0 8px;
+    padding: 12px 16px;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+}
+
+.resumen-paciente strong {
+    font-size: 1.05rem;
+}
+
+.resumen-paciente span {
+    font-size: 0.85rem;
+    color: var(--color-placeholder);
+}
+
+/* Notas del paciente (alergias, enfermedades crónicas): en rojo, para tenerlas presentes al indicar un tratamiento */
+.resumen-paciente .alerta-notas--activa {
+    font-weight: 600;
+    color: var(--color-error);
+}
+
+#vista-consulta textarea {
+    resize: vertical;
+}
+
+@media (max-width: 700px) {
+    #vista-consulta.activa {
+        min-height: 0;
+        align-items: flex-start;
+    }
+}
+
+/* ===== BUSCADOR DE SÍNTOMAS ===== */
+.buscador-sintomas {
+    position: relative;                  /* la lista de sugerencias se coloca debajo del cuadro */
+}
+
+.sugerencias-sintomas {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    max-height: 260px;
+    margin: 0;
+    padding: 4px;
+    overflow-y: auto;
+    list-style: none;
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.sugerencias-sintomas [role="option"] {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: var(--color-texto);
+    cursor: pointer;
+}
+
+.sugerencias-sintomas [role="option"] small {
+    font-size: 0.75rem;
+    color: var(--color-placeholder);
+}
+
+.sugerencias-sintomas [role="option"]:hover,
+.sugerencias-sintomas [role="option"][aria-selected="true"] {
+    background-color: rgba(56, 189, 248, 0.18);
+}
+
+.sugerencia-vacia {
+    padding: 10px;
+    font-size: 0.85rem;
+    color: var(--color-placeholder);
+}
+
+/* Botón "Añadir" debajo del cuadro (usa los estilos de .btn-modal y .btn-guardar) */
+.btn-anadir {
+    flex: none;
+    min-width: 110px;
+    margin-top: 8px;
+}
+
+.contador-sintomas {
+    margin: 12px 0 0;
+    font-size: 0.8rem;
+    color: var(--color-placeholder);
+}
+
+/* Síntomas ya añadidos, como etiquetas con una × para quitarlos */
+.sintomas-elegidos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.chip-sintoma {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px 4px 12px;
+    background-color: rgba(56, 189, 248, 0.18);
+    border: 1px solid var(--color-acento);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    color: var(--color-texto);
+}
+
+.chip-sintoma button {
+    padding: 0 6px;
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    line-height: 1.3;
+    color: inherit;
+    cursor: pointer;
+}
+
+.chip-sintoma button:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}

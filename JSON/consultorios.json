@@ -1,0 +1,11 @@
+{
+    "meta": {
+        "simulado": true,
+        "descripcion": "Consultorios independientes ficticios. Cada médico pertenece a uno; cada consultorio ve completo solo su propio historial."
+    },
+    "consultorios": [
+        { "id": 1, "nombre": "Consultorio Médico Prado", "ciudad": "Guasave", "region": "Norte" },
+        { "id": 2, "nombre": "Clínica Cardiológica del Valle", "ciudad": "Los Mochis", "region": "Norte" },
+        { "id": 3, "nombre": "Consultorio Ochoa Medicina Interna", "ciudad": "Culiacán", "region": "Centro" }
+    ]
+}

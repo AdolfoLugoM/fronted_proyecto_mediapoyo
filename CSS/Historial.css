@@ -1,0 +1,417 @@
+/* ==========================================================================
+HISTORIAL DE CONSULTAS (#vista-historial) y acciones de la tabla de resultados
+========================================================================== */
+
+/* ===== ACCIONES EN CADA FILA DE LA TABLA DE RESULTADOS ===== */
+.acciones-tabla {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.boton-tabla {
+    padding: 6px 12px;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 6px;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-texto);
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.boton-tabla:hover {
+    border-color: var(--color-acento);
+}
+
+.boton-tabla:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.boton-tabla--principal {
+    background-color: var(--color-acento);
+    border-color: var(--color-acento);
+    color: var(--color-superficie);
+}
+
+.boton-tabla--principal:hover {
+    background-color: var(--color-acento-hover);
+    border-color: var(--color-acento-hover);
+}
+
+/* Acción delicada (acceso de emergencia) */
+.boton-tabla--peligro {
+    border-color: var(--color-error);
+    color: var(--color-error);
+}
+
+.boton-tabla--peligro:hover {
+    background-color: var(--color-error);
+    border-color: var(--color-error);
+    color: var(--color-texto);
+}
+
+/* Botón con aspecto de enlace */
+.boton-enlace {
+    padding: 0;
+    background: transparent;
+    border: 0;
+    font: inherit;
+    font-size: 0.85rem;
+    color: var(--color-acento);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.boton-enlace:hover {
+    color: var(--color-acento-hover);
+}
+
+.boton-enlace:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+/* ===== VISTA DEL HISTORIAL ===== */
+#vista-historial {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.btn-volver {
+    margin-bottom: 16px;
+    padding: 6px 0;
+    background: transparent;
+    border: 0;
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--color-placeholder);
+    cursor: pointer;
+}
+
+.btn-volver:hover {
+    color: var(--color-acento);
+}
+
+/* Datos del paciente + botón "Nueva consulta" */
+.tarjeta-paciente {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 12px;
+    padding: 16px 20px;
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 12px;
+}
+
+.tarjeta-paciente h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: var(--color-texto);
+}
+
+.tarjeta-paciente p {
+    margin: 4px 0 0;
+    font-size: 0.9rem;
+    color: var(--color-placeholder);
+}
+
+.tarjeta-paciente .btn-modal {
+    flex: none;
+    min-width: 150px;
+}
+
+/* ===== ANTECEDENTES (siempre visibles) ===== */
+.antecedentes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 0 0 24px;
+}
+
+.antecedente {
+    padding: 10px 14px;
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+}
+
+.antecedente dt {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-placeholder);
+}
+
+.antecedente dd {
+    margin: 4px 0 0;
+    font-weight: 600;
+    color: var(--color-texto);
+}
+
+.antecedente dd.antecedente-vacio {
+    font-weight: 400;
+    font-style: italic;
+    color: var(--color-placeholder);
+}
+
+/* Alergia registrada: se resalta en rojo */
+.antecedente--alerta {
+    border-color: var(--color-error);
+    border-left-width: 4px;
+}
+
+.antecedente--alerta dt {
+    color: var(--color-error);
+}
+
+/* ===== LISTA ===== */
+.historial-titulo {
+    margin: 0 0 4px;
+    font-size: 1.1rem;
+    color: var(--color-texto);
+}
+
+.historial-resumen {
+    margin: 0 0 16px;
+    font-size: 0.9rem;
+    color: var(--color-placeholder);
+}
+
+.historial-lista {
+    display: grid;
+    gap: 12px;
+}
+
+/* ===== PERMISO PARA VER CONSULTAS DE OTROS CONSULTORIOS ===== */
+.banner-acceso {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 14px 18px;
+    background-color: var(--color-fondo);
+    border: 1px dashed var(--color-borde);
+    border-radius: 12px;
+    color: var(--color-texto);
+}
+
+.banner-acceso[hidden] {
+    display: none;
+}
+
+.banner-acceso p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* El paciente ya dio su permiso */
+.banner-acceso--concedido {
+    border-style: solid;
+    border-color: var(--color-acento);
+}
+
+/* Acceso de emergencia: siempre en rojo, para que nadie lo confunda con un permiso normal */
+.banner-acceso--emergencia {
+    border-style: solid;
+    border-color: var(--color-error);
+    border-left-width: 4px;
+}
+
+.formulario-codigo {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.formulario-codigo input {
+    width: 9ch;
+    padding: 8px 10px;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 6px;
+    font-family: ui-monospace, Consolas, 'Courier New', monospace;
+    font-size: 1.1rem;
+    letter-spacing: 0.2em;
+    color: var(--color-texto);
+}
+
+.formulario-emergencia {
+    display: grid;
+    gap: 8px;
+}
+
+.formulario-emergencia label {
+    font-size: 0.85rem;
+    color: var(--color-placeholder);
+}
+
+.formulario-emergencia textarea {
+    width: 100%;
+    padding: 8px 10px;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 6px;
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--color-texto);
+    resize: vertical;
+}
+
+.formulario-codigo input:focus,
+.formulario-emergencia textarea:focus {
+    outline: 2px solid var(--color-acento);
+    border-color: transparent;
+}
+
+.formulario-codigo input:disabled {
+    opacity: 0.6;
+}
+
+.acciones-enlace {
+    display: flex;
+    gap: 16px;
+}
+
+.acceso-mensaje {
+    font-size: 0.85rem;
+    color: var(--color-error);
+}
+
+/* ===== UNA CONSULTA ===== */
+.consulta-historial {
+    padding: 16px 20px;
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-left: 4px solid var(--color-acento);
+    border-radius: 12px;
+    color: var(--color-texto);
+}
+
+/* De otro consultorio, ya con permiso: borde distinto para que se note su origen */
+.consulta-historial--externa {
+    border-left-color: var(--color-placeholder);
+}
+
+/* Sin permiso: apagada */
+.consulta-historial--bloqueada {
+    border-left-color: var(--color-borde);
+    opacity: 0.75;
+}
+
+.consulta-cabecera {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.consulta-fecha {
+    display: block;
+    font-weight: 600;
+}
+
+/* Solo la primera letra en mayúscula: "lunes, 14 de..." -> "Lunes, 14 de..." */
+.consulta-fecha::first-letter {
+    text-transform: uppercase;
+}
+
+.consulta-medico {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.8rem;
+    color: var(--color-placeholder);
+}
+
+.consulta-folio {
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-placeholder);
+}
+
+.sintomas-consulta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.etiqueta-sintoma {
+    padding: 3px 10px;
+    background-color: rgba(56, 189, 248, 0.12);
+    border: 1px solid var(--color-borde);
+    border-radius: 999px;
+    font-size: 0.8rem;
+}
+
+.consulta-sin-sintomas {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--color-placeholder);
+}
+
+.consulta-observaciones {
+    margin: 0;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+}
+
+.consulta-observaciones strong {
+    color: var(--color-placeholder);
+}
+
+.consulta-protegida {
+    margin: 10px 0 0;
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--color-placeholder);
+}
+
+/* ===== SOLO SIMULACIÓN: mensaje que "llega" al teléfono del paciente ===== */
+.bandeja-simulada {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    z-index: 1100;
+    display: grid;
+    gap: 8px;
+    width: min(320px, calc(100vw - 32px));
+    padding: 14px 16px;
+    background-color: var(--color-superficie);
+    border: 2px dashed var(--color-placeholder);
+    border-radius: 14px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    color: var(--color-texto);
+    animation: aparecerModal 0.2s ease-out;     /* definida en Alertas.css */
+}
+
+.bandeja-simulada__cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.bandeja-simulada__etiqueta {
+    padding: 2px 8px;
+    border: 1px solid var(--color-placeholder);
+    border-radius: 999px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--color-placeholder);
+}
+
+.bandeja-simulada p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.bandeja-simulada .boton-enlace {
+    justify-self: end;
+}

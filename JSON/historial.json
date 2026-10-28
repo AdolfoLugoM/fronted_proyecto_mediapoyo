@@ -1,0 +1,161 @@
+{
+    "meta": {
+        "simulado": true,
+        "descripcion": "Historial de consultas ficticio para pruebas. Cada consulta pertenece al consultorio donde se atendió (consultorioId). Ya no hay llaves por consulta: el acceso se decide por consultorio, código del paciente o emergencia."
+    },
+    "consultas": [
+        {
+            "id": 1,
+            "pacienteId": 6,
+            "medicoId": 2,
+            "consultorioId": 2,
+            "fecha": "2026-01-20T10:30:00",
+            "sintomas": [36, 21],
+            "observaciones": "Episodios ocasionales desde hace dos semanas. Se solicita electrocardiograma."
+        },
+        {
+            "id": 2,
+            "pacienteId": 4,
+            "medicoId": 3,
+            "consultorioId": 3,
+            "fecha": "2026-02-12T17:20:00",
+            "sintomas": [25, 26, 1],
+            "observaciones": "Malestar posterior a un viaje. Se indica reposo e hidratación."
+        },
+        {
+            "id": 3,
+            "pacienteId": 1,
+            "medicoId": 1,
+            "consultorioId": 1,
+            "fecha": "2026-03-10T09:30:00",
+            "sintomas": [1, 8, 10],
+            "observaciones": "Cuadro de dos días de evolución. Se indica reposo e hidratación."
+        },
+        {
+            "id": 4,
+            "pacienteId": 12,
+            "medicoId": 4,
+            "consultorioId": 1,
+            "fecha": "2026-03-30T14:00:00",
+            "sintomas": [],
+            "observaciones": "Revisión de rutina, sin molestias. Signos vitales dentro de lo normal."
+        },
+        {
+            "id": 5,
+            "pacienteId": 6,
+            "medicoId": 2,
+            "consultorioId": 2,
+            "fecha": "2026-04-14T10:30:00",
+            "sintomas": [38, 9],
+            "observaciones": "Se refiere a valoración con especialista."
+        },
+        {
+            "id": 6,
+            "pacienteId": 13,
+            "medicoId": 3,
+            "consultorioId": 3,
+            "fecha": "2026-05-05T11:30:00",
+            "sintomas": [39, 40],
+            "observaciones": "Se solicitan estudios de laboratorio."
+        },
+        {
+            "id": 7,
+            "pacienteId": 1,
+            "medicoId": 1,
+            "consultorioId": 1,
+            "fecha": "2026-05-22T11:00:00",
+            "sintomas": [20, 21],
+            "observaciones": "Cefalea desde hace una semana. Se pide control de presión arterial en la próxima visita."
+        },
+        {
+            "id": 8,
+            "pacienteId": 2,
+            "medicoId": 4,
+            "consultorioId": 1,
+            "fecha": "2026-06-18T12:00:00",
+            "sintomas": [17, 14, 16],
+            "observaciones": "Inicio posterior a una comida. Se indica hidratación y dieta blanda."
+        },
+        {
+            "id": 9,
+            "pacienteId": 8,
+            "medicoId": 1,
+            "consultorioId": 1,
+            "fecha": "2026-07-07T13:10:00",
+            "sintomas": [8, 1, 2],
+            "observaciones": "Tres días de evolución. Se indica reposo y revaloración si persiste."
+        },
+        {
+            "id": 10,
+            "pacienteId": 1,
+            "medicoId": 4,
+            "consultorioId": 1,
+            "fecha": "2026-08-04T16:15:00",
+            "sintomas": [11, 12, 30],
+            "observaciones": "Síntomas que se repiten cada temporada."
+        },
+        {
+            "id": 11,
+            "pacienteId": 10,
+            "medicoId": 3,
+            "consultorioId": 3,
+            "fecha": "2026-08-25T15:40:00",
+            "sintomas": [19, 17],
+            "observaciones": "Molestias después de comer. Se recomienda cambiar horarios y tipo de comidas."
+        },
+        {
+            "id": 12,
+            "pacienteId": 2,
+            "medicoId": 1,
+            "consultorioId": 1,
+            "fecha": "2026-09-09T08:45:00",
+            "sintomas": [3, 5],
+            "observaciones": "Cansancio de varias semanas. Se piden estudios de laboratorio."
+        },
+        {
+            "id": 13,
+            "pacienteId": 6,
+            "medicoId": 3,
+            "consultorioId": 3,
+            "fecha": "2026-09-29T09:00:00",
+            "sintomas": [26, 28],
+            "observaciones": "Rigidez matutina en rodillas y manos."
+        },
+        {
+            "id": 14,
+            "pacienteId": 1,
+            "medicoId": 1,
+            "consultorioId": 1,
+            "fecha": "2026-10-06T10:00:00",
+            "sintomas": [27, 28],
+            "observaciones": "Dolor lumbar tras esfuerzo físico. Se recomienda reposo relativo."
+        },
+        {
+            "id": 15,
+            "pacienteId": 9,
+            "medicoId": 4,
+            "consultorioId": 1,
+            "fecha": "2026-10-14T12:20:00",
+            "sintomas": [35, 1],
+            "observaciones": "Dos días de evolución. Se programa control."
+        },
+        {
+            "id": 16,
+            "pacienteId": 1,
+            "medicoId": 2,
+            "consultorioId": 2,
+            "fecha": "2026-07-15T09:15:00",
+            "sintomas": [36, 37],
+            "observaciones": "Palpitaciones al subir escaleras. Electrocardiograma normal; se indica holter de 24 horas."
+        },
+        {
+            "id": 17,
+            "pacienteId": 6,
+            "medicoId": 4,
+            "consultorioId": 1,
+            "fecha": "2026-10-02T11:45:00",
+            "sintomas": [20, 21],
+            "observaciones": "Control de presión arterial: 150/95. Se ajusta tratamiento y se cita en dos semanas."
+        }
+    ]
+}

@@ -1,0 +1,303 @@
+/* ========================================================================== SIDEBAR: menú lateral, modo colapsado (solo íconos) y hamburguesa flotante ========================================================================== */
+
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 300px;
+    height: 100vh;
+    padding: 24px 20px;
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    overflow-y: auto;
+    z-index: 100;
+    transition: transform 0.3s ease, left 0.3s ease, width 0.3s ease, padding 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.encabezado-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+/* ===== TÍTULO "MediApoyo" DEL SIDEBAR ===== */
+#sidebar .titulo-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--color-texto);
+    font: inherit;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+}
+
+#sidebar .titulo-sidebar:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 4px;
+    border-radius: 6px;
+}
+
+#sidebar .logo-sidebar {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+/* ===== MENÚ DE BOTONES E ÍCONOS SVG ===== */
+#sidebar .menu-botones {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#sidebar .menu-botones .boton {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 14px;
+    border: 0;
+    border-radius: 8px;
+    background-color: transparent;
+    color: var(--color-texto);
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, padding 0.3s ease;
+    text-align: left;
+}
+
+/* Hover suave (el botón marcado ya tiene su propio color) */
+#sidebar .menu-botones .boton:hover:not(.activo) {
+    background-color: rgba(56, 189, 248, 0.2);
+    color: var(--color-texto);
+}
+
+/* Botón del menú marcado */
+#sidebar .menu-botones .boton.activo {
+    background-color: var(--color-acento);
+    color: var(--color-superficie);
+}
+
+.icono-boton {
+    flex-shrink: 0;
+    color: currentColor;
+    transition: transform 0.2s ease;
+}
+
+#sidebar .menu-botones .boton:hover .icono-boton {
+    transform: scale(1.1);
+}
+
+/* Botón deshabilitado */
+#sidebar button:disabled,
+#sidebar button.seleccionado {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    background-color: var(--color-borde);
+    color: var(--color-placeholder);
+}
+
+#sidebar button:disabled:hover {
+    background-color: var(--color-borde);
+}
+
+/* Botón de cerrar el menú (X) */
+.btn-cerrar-sidebar {
+    background: transparent !important;
+    border: none !important;
+    color: var(--color-placeholder) !important;
+    padding: 6px !important;
+    width: auto !important;
+    margin: 0 !important;
+    cursor: pointer;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-cerrar-sidebar:hover {
+    color: var(--color-texto) !important;
+    background-color: var(--color-superficie) !important;
+}
+
+/* ===== ESTADO COLAPSADO (solo íconos flotando) ===== */
+#sidebar.colapsado {
+    width: 64px !important;
+    padding: calc(var(--eje-superior) + 44px + 10px) 0 0 !important;   /* deja libre la hamburguesa */
+    background-color: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    pointer-events: none;               /* el área vacía no bloquea clics del contenido */
+}
+
+/* Oculta textos, X y logo */
+#sidebar.colapsado .nombre-sidebar,
+#sidebar.colapsado .btn-cerrar-sidebar,
+#sidebar.colapsado .logo-sidebar,
+#sidebar.colapsado .menu-botones .boton span {
+    display: none !important;
+}
+
+#sidebar.colapsado .encabezado-sidebar {
+    display: none !important;
+}
+
+/* Íconos centrados en el eje x = 32px (igual que la hamburguesa) */
+#sidebar.colapsado .menu-botones {
+    align-items: center;
+    gap: 10px;
+}
+
+#sidebar.colapsado .menu-botones .boton {
+    pointer-events: auto;               /* los botones sí reciben clics */
+    justify-content: center !important;
+    width: 44px !important;
+    height: 44px;
+    padding: 0 !important;
+    gap: 0 !important;
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* Botón marcado en modo colapsado */
+#sidebar.colapsado .menu-botones .boton.activo {
+    background-color: var(--color-acento);
+    border-color: var(--color-acento);
+    color: var(--color-superficie);
+}
+
+/* Hover en modo colapsado */
+#sidebar.colapsado .menu-botones .boton:hover {
+    background-color: var(--color-acento);
+    border-color: var(--color-acento);
+    color: var(--color-superficie);
+}
+
+/* ===== BOTÓN FLOTANTE (HAMBURGUESA) ===== */
+.btn-abrir-sidebar {
+    position: fixed;
+    top: var(--eje-superior) !important;
+    left: 32px !important;
+    transform: translateX(-50%) !important;
+    z-index: 101 !important;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 8px;
+    background-color: var(--color-fondo) !important;
+    border: 1px solid var(--color-borde) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-abrir-sidebar:hover {
+    border-color: var(--color-acento) !important;
+}
+
+/* Se muestra solo cuando el sidebar está colapsado */
+#sidebar.colapsado ~ .btn-abrir-sidebar,
+.btn-abrir-sidebar.visible {
+    display: flex !important;
+}
+
+.icono-menu-hamburger {
+    width: 40px;
+    height: 40px;
+    display: block;
+    object-fit: contain;
+}
+
+/* ===== PERFIL DEL MÉDICO (parte baja del sidebar) ===== */
+.perfil-sidebar {
+    margin-top: auto;                 /* lo empuja al fondo del menú */
+    padding-top: 16px;
+    border-top: 1px solid var(--color-borde);
+}
+
+.perfil-sidebar__boton {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 14px;
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    font: inherit;
+    text-align: left;
+    color: var(--color-texto);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.perfil-sidebar__boton:hover {
+    background-color: rgba(56, 189, 248, 0.2);
+}
+
+.avatar-usuario {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 50%;
+    color: var(--color-acento);
+}
+
+.perfil-sidebar__textos {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;                     /* permite que los nombres largos se corten con "…" */
+}
+
+.perfil-sidebar__textos strong,
+.perfil-sidebar__textos small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.perfil-sidebar__textos strong {
+    font-size: 0.9rem;
+}
+
+.perfil-sidebar__textos small {
+    font-size: 0.75rem;
+    color: var(--color-placeholder);
+}
+
+/* Con el menú minimizado se oculta: el ícono de la barra superior sigue disponible */
+#sidebar.colapsado .perfil-sidebar {
+    display: none !important;
+}
+
+/* ===== MÓVILES ===== */
+@media (max-width: 700px) {
+    #sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+    }
+}

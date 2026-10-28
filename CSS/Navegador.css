@@ -1,0 +1,221 @@
+/* ========================================================================== NAVEGADOR (barra superior): título, búsqueda de pacientes y cerrar sesión ========================================================================== */
+
+/* Fila flex: título + búsqueda + botón de salir, todos de 44px de alto */
+.header-contenido-superior {
+    position: sticky;
+    top: 0;
+    z-index: 90;                                 /* sobre las gráficas, bajo el sidebar (100) y el modal (1000) */
+    background-color: var(--color-superficie);   /* mismo fondo de la página, tapa lo que pasa por debajo */
+    padding: var(--eje-superior) 0 12px;         /* el espacio de arriba ahora es parte de la barra */
+    
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;                        /* antes: 0 0 24px 0 */
+}
+
+/* ===== TÍTULO EN EL BODY ===== */
+.titulo-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 44px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--color-texto);
+    font: inherit;
+    font-size: 1.1rem;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.titulo-body:hover {
+    opacity: 0.85;
+}
+
+.titulo-body:focus-visible {
+    outline: 2px solid var(--color-acento);
+    outline-offset: 4px;
+    border-radius: 6px;
+}
+
+.logo-body {
+    width: 35px;
+    height: 35px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+/* Con el sidebar abierto el título ya aparece en el menú: se oculta el del body */
+main:not(.colapsado) .titulo-body {
+    display: none;
+}
+
+/* ===== BARRA DE BÚSQUEDA ===== */
+.contenedor-busqueda {
+    flex: 1;
+    margin: 0 !important;
+}
+
+.formulario-busqueda {
+    display: flex;
+    height: 44px;
+    align-items: center;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    padding: 0 4px 0 12px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.formulario-busqueda:focus-within {
+    border-color: var(--color-acento);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.formulario-busqueda .icono-busqueda {
+    color: var(--color-placeholder);
+    flex-shrink: 0;
+}
+
+.formulario-busqueda input[type="search"] {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--color-texto);
+    font-size: 0.95rem;
+    font-family: inherit;
+    padding: 0 8px;
+}
+
+.formulario-busqueda input[type="search"]::placeholder {
+    color: var(--color-placeholder);
+}
+
+/* Botón X: borra lo escrito (solo aparece cuando hay texto) */
+.formulario-busqueda .boton-limpiar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--color-placeholder);
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.formulario-busqueda .boton-limpiar:hover,
+.formulario-busqueda .boton-limpiar:focus-visible {
+    color: var(--color-texto);
+    background-color: var(--color-fondo);
+}
+
+/* Sin esto, el display: flex de arriba le ganaría al atributo hidden */
+.formulario-busqueda .boton-limpiar[hidden] {
+    display: none;
+}
+
+/* Quita la X nativa del navegador en los campos de búsqueda (Chrome/Edge), para que no salgan dos */
+.formulario-busqueda input[type="search"]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* ===== BOTÓN CERRAR SESIÓN ===== */
+.barra-cerrar-sesion {
+    display: flex !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.btn-cerrar-sesion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-superficie);
+    color: var(--color-placeholder);
+    border: 1px solid var(--color-borde);
+    padding: 10px 14px;
+    border-radius: 8px;
+    height: 44px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cerrar-sesion:hover {
+    background-color: var(--color-error);
+    color: #ffffff;
+    border-color: var(--color-error);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+/* ===== ÍCONO DE USUARIO CON NOMBRE AL PASAR EL CURSOR ===== */
+.barra-cerrar-sesion {
+    gap: 8px;
+}
+
+.btn-perfil {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    color: var(--color-placeholder);
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-perfil:hover,
+.btn-perfil:focus-visible {
+    color: var(--color-acento);
+    border-color: var(--color-acento);
+}
+
+/* Cuadro flotante con el nombre y la especialidad (el texto lo pone perfil.js en data-tooltip) */
+.btn-perfil[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;                          /* anclado a la derecha para no salirse de la pantalla */
+    z-index: 5;
+    width: max-content;
+    max-width: 260px;
+    padding: 8px 12px;
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    text-align: left;
+    white-space: pre-line;             /* respeta el salto de línea entre nombre y especialidad */
+    color: var(--color-texto);
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.btn-perfil[data-tooltip]:hover::after,
+.btn-perfil[data-tooltip]:focus-visible::after {
+    opacity: 1;
+    transform: translateY(0);
+}

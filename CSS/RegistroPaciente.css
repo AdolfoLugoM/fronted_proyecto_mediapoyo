@@ -1,0 +1,97 @@
+/* ==========================================================================
+REGISTRO DE PACIENTE (vista "Nuevo Paciente")
+========================================================================== */
+
+.tarjeta-formulario {
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 720px;
+    margin: 0 auto;
+    color: var(--color-texto);
+}
+
+.tarjeta-formulario h2 {
+    margin-top: 0;
+}
+
+.fila-formulario {
+    display: flex;
+    gap: 16px;
+}
+
+.fila-formulario .campo {
+    flex: 1;
+}
+
+.tarjeta-formulario label {
+    display: block;
+    margin: 14px 0 6px;
+    font-size: 0.85rem;
+    color: var(--color-placeholder);
+}
+
+.tarjeta-formulario input,
+.tarjeta-formulario select,
+.tarjeta-formulario textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--color-borde);
+    border-radius: 6px;
+    background-color: var(--color-superficie);
+    color: var(--color-texto);
+    font: inherit;
+}
+
+.tarjeta-formulario input:focus,
+.tarjeta-formulario select:focus,
+.tarjeta-formulario textarea:focus {
+    outline: 2px solid var(--color-acento);
+    border-color: transparent;
+}
+
+.acciones-formulario {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.acciones-formulario .btn-modal {
+    flex: none;
+    min-width: 110px;
+}
+
+#curp {
+    text-transform: uppercase;
+}
+
+.btn-guardar {
+    background-color: var(--color-acento);
+    color: var(--color-superficie);
+}
+
+.btn-guardar:hover {
+    background-color: var(--color-acento-hover);
+}
+
+/* Centra la tarjeta en el espacio que deja la barra superior */
+#vista-nuevo-paciente.activa {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* alto de la pantalla menos: espacio superior + barra (44px) + espacio bajo la barra (24px) + padding inferior de <main> (24px) */
+    min-height: calc(100vh - var(--eje-superior) - 44px - 24px - 24px);
+}
+
+#vista-nuevo-paciente .tarjeta-formulario {
+    width: 100%;                     /* dentro de un flex hay que pedirle el ancho; el max-width de 720px sigue mandando */
+}
+
+@media (max-width: 700px) {
+    .fila-formulario {
+        flex-direction: column;
+        gap: 0;
+    }
+}
