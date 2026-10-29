@@ -1,15 +1,15 @@
 // Archivo de entrada: es el único script que carga index.html
-import './sidebar.js';
-import './logout.js';
-import './busqueda.js';
-import './titulo.js';
+import './interfaz/sidebar.js';
+import './interfaz/logout.js';
+import './interfaz/busqueda.js';
+import './interfaz/titulo.js';
 
-import './nuevoPaciente.js';
-import './consulta.js';
-import './editarPaciente.js';
-import './enfermedadBusqueda.js';
-import './gestionCitas.js';
+import './interfaz/nuevoPaciente.js';
+import './interfaz/consulta.js';
+import './interfaz/editarPaciente.js';
+import './interfaz/enfermedadBusqueda.js';
+import './interfaz/gestionCitas.js';
 
-import './graficas.js';
-import './perfil.js';
-import './seguridadCuenta.js';
+import './interfaz/graficas.js';
+import './interfaz/perfil.js';
+import './interfaz/seguridadCuenta.js';

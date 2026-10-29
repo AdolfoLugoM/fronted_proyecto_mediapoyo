@@ -11,7 +11,7 @@ import { mostrarVista, marcarBoton } from './vistas.js';
 import {
     obtenerCitas, crearCita, actualizarCita, eliminarCita,
     DURACION_CITA_MIN, HORA_APERTURA, HORA_CIERRE
-} from './citasServicio.js';
+} from '../servicios/citasServicio.js';
 
 const PATRON_CURP = '[A-Z]{4}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[HMX][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z0-9][0-9]';
 

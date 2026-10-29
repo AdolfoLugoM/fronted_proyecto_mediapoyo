@@ -1,5 +1,5 @@
 // Modal emergente de confirmación (cerrar sesión)
-import { cerrarSesion } from './sesionServicio.js';
+import { cerrarSesion } from '../servicios/sesionServicio.js';
 
 const btnLogout = document.getElementById('btn-logout');
 const modalLogout = document.getElementById('modal-overlay-logout');

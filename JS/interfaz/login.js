@@ -1,5 +1,5 @@
 // Página de inicio de sesión (login.html): reconoce al médico y abre el sistema.
-import { iniciarSesion } from './sesionServicio.js';
+import { iniciarSesion } from '../servicios/sesionServicio.js';
 
 const formulario = document.getElementById('formulario-login');
 const campoCorreo = document.getElementById('correo');

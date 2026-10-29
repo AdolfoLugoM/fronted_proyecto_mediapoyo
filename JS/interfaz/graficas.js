@@ -2,7 +2,7 @@
 // Los datos llegan desde tendenciasServicio.js (hoy un JSON, mañana la API): este archivo solo dibuja.
 // Chart.js se carga con un <script> clásico en index.html, antes de main.js.
 
-import { obtenerTopEnfermedades } from './tendenciasServicio.js';
+import { obtenerTopEnfermedades } from '../servicios/tendenciasServicio.js';
 
 const LIMITE = 5;
 
