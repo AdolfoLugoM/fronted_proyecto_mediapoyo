@@ -3,7 +3,7 @@
 // Si la CURP ya existe en otro consultorio, el servicio solo lo vincula con este (sin duplicarlo)
 // y la pantalla muestra el mismo aviso, para no revelar dónde más se atiende.
 import { mostrarVista, marcarBoton, irAlInicio } from './vistas.js';
-import { crearPaciente } from './pacientesServicio.js';
+import { crearPaciente } from '../servicios/pacientesServicio.js';
 import { abrirConsulta } from './consulta.js';
 import { mostrarAviso } from './avisos.js';
 

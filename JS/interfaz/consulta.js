@@ -6,11 +6,11 @@
 // se actualizan las enfermedades sugeridas, y al hacer clic en una queda elegida en el selector.
 
 import { mostrarVista, marcarBoton, irAlInicio } from './vistas.js';
-import { crearConsulta } from './consultasServicio.js';
-import { obtenerSintomas } from './sintomasServicio.js';
-import { obtenerEnfermedades, sugerirEnfermedades } from './enfermedadesServicio.js';
+import { crearConsulta } from '../servicios/consultasServicio.js';
+import { obtenerSintomas } from '../servicios/sintomasServicio.js';
+import { obtenerEnfermedades, sugerirEnfermedades } from '../servicios/enfermedadesServicio.js';
 import { mostrarAviso } from './avisos.js';
-import { calcularEdad } from './utilidades.js';
+import { calcularEdad } from '../utilidades.js';
 
 const MAX_SUGERENCIAS = 8;
 

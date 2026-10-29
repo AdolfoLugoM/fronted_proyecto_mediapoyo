@@ -4,7 +4,7 @@
 //   - "Guardar" valida y, si sale bien, cierra todo y avisa
 // Las contraseñas NUNCA se recortan (los espacios cuentan) ni se muestran en avisos o en la consola.
 
-import { cambiarClave } from './sesionServicio.js';
+import { cambiarClave } from '../servicios/sesionServicio.js';
 import { abrirPerfil, cerrarPerfil } from './perfil.js';
 import { mostrarAviso } from './avisos.js';
 

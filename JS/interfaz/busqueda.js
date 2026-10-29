@@ -1,11 +1,11 @@
 // Barra de búsqueda de pacientes: busca mientras se escribe y muestra los resultados en una tabla.
 // Cada fila ofrece tres acciones: editar los datos (lápiz), ver el historial y crear una consulta nueva.
-import { buscarPacientes } from './pacientesServicio.js';
+import { buscarPacientes } from '../servicios/pacientesServicio.js';
 import { mostrarVista, marcarBoton, irAlInicio } from './vistas.js';
 import { abrirHistorial } from './historial.js';
 import { abrirConsulta } from './consulta.js';
 import { abrirEdicion } from './editarPaciente.js';
-import { calcularEdad } from './utilidades.js';
+import { calcularEdad } from '../utilidades.js';
 
 const MIN_CARACTERES = 2;      // no busca con menos letras
 const ESPERA_MS = 300;         // espera a que la persona deje de escribir

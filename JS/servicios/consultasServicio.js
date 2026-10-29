@@ -15,7 +15,7 @@ import { obtenerMedicos } from './medicosServicio.js';
 import { obtenerMedicoActual } from './sesionServicio.js';
 import { obtenerPaciente, atiendeEnConsultorio } from './pacientesServicio.js';
 import { registrarAuditoria, fechaHoraLocal } from './auditoriaServicio.js';
-import { calcularEdad } from './utilidades.js';
+import { calcularEdad } from '../utilidades.js';
 
 const USAR_API = false;
 const URL_JSON = 'JSON/historial.json';      // ruta relativa a index.html

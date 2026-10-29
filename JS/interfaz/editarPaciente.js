@@ -6,7 +6,7 @@
 //   avisa al resto de la app con el evento 'paciente-actualizado'
 //   (lo escuchan la tabla de resultados y el historial para redibujarse).
 
-import { actualizarPaciente } from './pacientesServicio.js';
+import { actualizarPaciente } from '../servicios/pacientesServicio.js';
 import { mostrarAviso } from './avisos.js';
 
 const modal = document.getElementById('modal-editar-paciente');

@@ -8,10 +8,10 @@
 // Desde aquí también se puede crear una consulta nueva para ese mismo paciente.
 
 import { mostrarVista, marcarBoton } from './vistas.js';
-import { obtenerHistorial, desbloquearConsulta } from './consultasServicio.js';
+import { obtenerHistorial, desbloquearConsulta } from '../servicios/consultasServicio.js';
 import { abrirConsulta } from './consulta.js';
 import { mostrarAviso } from './avisos.js';
-import { calcularEdad, formatearFechaHora } from './utilidades.js';
+import { calcularEdad, formatearFechaHora } from '../utilidades.js';
 
 const nombrePaciente = document.getElementById('historial-nombre');
 const detallePaciente = document.getElementById('historial-detalle');

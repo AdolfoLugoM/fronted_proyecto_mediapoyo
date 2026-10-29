@@ -4,7 +4,7 @@
 //  - ambos abren el modal para editar el perfil (solo "Cancelar" y "Guardar")
 //  - desde ese modal se llega a cambiar la contraseña (ver seguridadCuenta.js)
 
-import { obtenerMedicoActual, actualizarPerfil } from './sesionServicio.js';
+import { obtenerMedicoActual, actualizarPerfil } from '../servicios/sesionServicio.js';
 import { mostrarAviso } from './avisos.js';
 
 const botonSidebar = document.getElementById('perfil-sidebar');
