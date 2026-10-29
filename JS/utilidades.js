@@ -16,8 +16,3 @@ export function calcularEdad(fechaIso) {
 export function formatearFechaHora(fechaIso) {
     return new Date(fechaIso).toLocaleString('es-MX', { dateStyle: 'full', timeStyle: 'short' });
 }
-
-/** "2026-09-14T18:40:00" -> "18:40" (hora local, formato de 24 horas) */
-export function formatearHora(fechaIso) {
-    return new Date(fechaIso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
-}
