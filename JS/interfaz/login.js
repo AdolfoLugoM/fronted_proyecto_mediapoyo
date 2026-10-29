@@ -2,7 +2,7 @@
 import { iniciarSesion } from '../servicios/sesionServicio.js';
 
 const formulario = document.getElementById('formulario-login');
-const campoCorreo = document.getElementById('correo');
+const campoUsuario = document.getElementById('usuario');
 const campoClave = document.getElementById('clave');
 const mensajeError = document.getElementById('login-error');
 const boton = formulario?.querySelector('button[type="submit"]');
@@ -20,7 +20,7 @@ formulario?.addEventListener('submit', async (evento) => {
     boton.disabled = true;                     // evita enviar dos veces con doble clic
     
     try {
-        const resultado = await iniciarSesion(campoCorreo.value, campoClave.value);
+        const resultado = await iniciarSesion(campoUsuario.value, campoClave.value);
         
         if (resultado.success) {
             window.location.href = 'index.html';

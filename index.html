@@ -6,6 +6,8 @@
     
     <title>MediApoyo</title>
     
+    <link rel="icon" type="image/svg+xml" href="IMAGES/hospital-medical-signal-of-a-cross-in-a-circle-svgrepo-com.svg">
+    
     <link rel="stylesheet" href="CSS/Base.css">
     <link rel="stylesheet" href="CSS/Index.css">
     <link rel="stylesheet" href="CSS/Navegador.css">
@@ -20,6 +22,8 @@
     <link rel="stylesheet" href="CSS/Historial.css">
     <link rel="stylesheet" href="CSS/Editar_Paciente.css">
     <link rel="stylesheet" href="CSS/EditarPerfil.css">
+    
+    <script>try{if(localStorage.getItem("tema")==="claro")document.documentElement.dataset.tema="claro"}catch(e){}</script>
 </head>
 
 <body>
@@ -85,7 +89,9 @@
     </aside>
     
     <button type="button" id="boton-abrir-sidebar" class="btn-abrir-sidebar" title="Abrir menú">
-        <img src="IMAGES/menu-hamburger-svgrepo-com.svg" alt="Icono de abrir menú" class="icono-menu-hamburger">
+        <svg class="icono-menu-hamburger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16"></path>
+        </svg>
     </button>
     
     <main>
@@ -117,10 +123,15 @@
             
             <!-- Botón de Cerrar Sesión alineado a la derecha -->
             <div class="barra-cerrar-sesion">
-                <button type="button" id="btn-perfil" class="btn-perfil" aria-label="Mi perfil">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
+                <button type="button" id="btn-tema" class="btn-tema" aria-label="Cambiar tema">
+                    <!-- Sol: se muestra en tema oscuro (lleva al claro) -->
+                    <svg class="icono-sol" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+                    </svg>
+                    <!-- Luna: se muestra en tema claro (lleva al oscuro) -->
+                    <svg class="icono-luna" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
                 </button>
                 
@@ -308,18 +319,18 @@
                         <input type="number" id="consulta-peso" name="peso" required min="0.5" max="400" step="0.1"
                             inputmode="decimal" placeholder="Ej. 70.5">
                     </div>
-
+                    
                     <div class="campo">
                         <label for="consulta-altura">Altura (cm)</label>
                         <input type="number" id="consulta-altura" name="altura" required min="30" max="250" step="1"
                             inputmode="numeric" placeholder="Ej. 165">
                     </div>
                 </div>
-
+                
                 <!-- Síntomas: no se guardan, sirven para sugerir la enfermedad -->
                 <div class="campo">
                     <label for="buscador-sintoma">Síntomas (para sugerir la enfermedad)</label>
-
+                    
                     <div class="buscador-sintomas" id="buscador-sintomas">
                         <input type="text" id="buscador-sintoma" autocomplete="off" spellcheck="false"
                             placeholder="Escribe un síntoma, por ejemplo: fiebre"
@@ -331,10 +342,10 @@
                     
                     <p class="contador-sintomas" id="contador-sintomas" aria-live="polite">Aún no has añadido síntomas</p>
                     <div class="sintomas-elegidos" id="sintomas-elegidos"></div>
-
+                    
                     <div class="enfermedades-sugeridas" id="enfermedades-sugeridas" aria-live="polite" hidden></div>
                 </div>
-
+                
                 <!-- Enfermedad (opcional: una consulta puede no tener diagnóstico) -->
                 <div class="campo">
                     <label for="consulta-enfermedad">Enfermedad</label>
@@ -342,7 +353,7 @@
                         <option value="">Sin diagnóstico (revisión)</option>
                     </select>
                 </div>
-
+                
                 <!-- Notas -->
                 <div class="campo">
                     <label for="consulta-notas">Notas</label>
@@ -570,8 +581,10 @@
         </div>
     </div>
     
+    <!-- Propiedades del Calendario -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    
     <script type="module" src="JS/main.js"></script>
 </body>
 </html>

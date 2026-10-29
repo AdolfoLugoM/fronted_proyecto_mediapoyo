@@ -2,14 +2,14 @@
 // HOY lee datos/medicos.json; MAÑANA llama a la API (USAR_API = true).
 
 // En la base de datos: tabla "medico" (id, nombre, apellidos, ciudad, efirma, contraseña con hash).
-// El correo y la contraseña nunca deben viajar al navegador.
+// La contraseña nunca deben viajar al navegador.
 
 const USAR_API = false;
 const URL_JSON = 'JSON/medicos.json';     // ruta relativa a index.html y a login.html
 const URL_API = '/api/medicos';
 
 // Lo único que un médico puede cambiar de su perfil desde la app.
-// El correo y la contraseña necesitan su propio proceso (confirmando la contraseña actual),
+// La contraseña necesita su propio proceso (confirmando la contraseña actual),
 // y el consultorio no lo decide el médico.
 
 const CAMPOS_EDITABLES = ['nombre', 'apellidos'];
@@ -26,7 +26,7 @@ async function cargarJSON() {
     return cacheMedicos;
 }
 
-/** Lista de médicos. (Con el JSON también trae el correo, que solo usa la simulación del inicio de sesión.) */
+/** Lista de médicos. (Con el JSON también trae el usuario y la contraseña, que solo usa la simulación del inicio de sesión.) */
 export async function obtenerMedicos() {
     if (USAR_API) {
         const respuesta = await fetch(URL_API);

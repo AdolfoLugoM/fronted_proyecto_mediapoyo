@@ -232,11 +232,24 @@ function iniciarCalendario() {
         height: 'auto',
         allDaySlot: false,
         headerToolbar: {
-            left: 'prev,next today',
+            left: 'prev,next today nuevaCita',
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,listWeek'
         },
         buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', list: 'Agenda' },
+        // Botón propio: el CSS lo oculta salvo en la vista Agenda (ver datesSet)
+        customButtons: {
+            nuevaCita: {
+                text: '+ Nueva cita',
+                click() {
+                    abrirNueva(aFechaISO(new Date()), '');   // hoy, sin hora; la eliges en el modal
+                }
+            }
+        },
+        datesSet(info) {
+            document.getElementById('vista-gestion-citas')
+                .classList.toggle('vista-agenda', info.view.type === 'listWeek');
+        },
         noEventsText: 'No hay citas para mostrar',
         slotMinTime: `${HORA_APERTURA}:00`,
         slotMaxTime: `${HORA_CIERRE}:00`,

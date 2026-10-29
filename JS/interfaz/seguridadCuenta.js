@@ -9,7 +9,7 @@ import { abrirPerfil, cerrarPerfil } from './perfil.js';
 import { mostrarAviso } from './avisos.js';
 
 /**
-* Comportamiento común de los dos modales.
+* Comportamiento del modal de cambio de contraseña.
 * - validar(formulario): validaciones extra antes de reportValidity (por ejemplo, que coincidan las contraseñas)
 * - enviar(datos): llama al servicio y devuelve { success, message, campo? }
 *   (campo = name del input que tuvo el problema, para dejar ahí el cursor)
@@ -62,9 +62,6 @@ function prepararModal({ idModal, idFormulario, idCancelar, idGuardar, validar, 
         evento.preventDefault();
         if (guardando) return;
         
-        // Solo el correo se recorta; las contraseñas se mandan tal cual
-        formulario.querySelectorAll('input[type="email"]').forEach(campo => { campo.value = campo.value.trim(); });
-        
         validar?.(formulario);
         if (!formulario.reportValidity()) return;
         
@@ -105,17 +102,6 @@ function prepararModal({ idModal, idFormulario, idCancelar, idGuardar, validar, 
     return { abrir };
 }
 
-// ----- Cambiar correo -----
-
-const modalCorreo = prepararModal({
-    idModal: 'modal-cambiar-correo',
-    idFormulario: 'formulario-cambiar-correo',
-    idCancelar: 'btn-cancelar-correo',
-    idGuardar: 'btn-guardar-correo',
-    mensajeExito: 'Correo actualizado. Úsalo la próxima vez que inicies sesión.',
-    enviar: (datos) => cambiarCorreo(datos['correo-nuevo'], datos['clave-actual'])
-});
-
 // ----- Cambiar contraseña -----
 
 const modalClave = prepararModal({
@@ -135,11 +121,6 @@ const modalClave = prepararModal({
 });
 
 // ----- Enlaces dentro del modal de perfil -----
-
-document.getElementById('btn-ir-cambiar-correo')?.addEventListener('click', () => {
-    cerrarPerfil({ restaurarFoco: false });
-    modalCorreo.abrir();
-});
 
 document.getElementById('btn-ir-cambiar-clave')?.addEventListener('click', () => {
     cerrarPerfil({ restaurarFoco: false });

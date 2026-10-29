@@ -8,7 +8,7 @@
             "id": 1,
             "nombre": "Elena",
             "apellidos": "Prado Ríos",
-            "correo": "elena.prado@example.com",
+            "usuario": "elena.prado",
             "clave": "Elena2026!",
             "consultorioId": 1
         },
@@ -16,7 +16,7 @@
             "id": 2,
             "nombre": "Samuel",
             "apellidos": "Quiroz Lara",
-            "correo": "samuel.quiroz@example.com",
+            "usuario": "samuel.quiroz",
             "clave": "Samuel2026!",
             "consultorioId": 2
         },
@@ -24,7 +24,7 @@
             "id": 3,
             "nombre": "Mariana",
             "apellidos": "Ochoa Vela",
-            "correo": "mariana.ochoa@example.com",
+            "usuario": "mariana.ochoa",
             "clave": "Mariana2026!",
             "consultorioId": 3
         },
@@ -32,7 +32,7 @@
             "id": 4,
             "nombre": "Hugo",
             "apellidos": "Cervantes Mora",
-            "correo": "hugo.cervantes@example.com",
+            "usuario": "hugo.cervantes",
             "clave": "Hugo2026!",
             "consultorioId": 1
         }

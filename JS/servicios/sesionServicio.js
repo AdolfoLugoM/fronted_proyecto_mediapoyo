@@ -13,29 +13,29 @@ const CLAVE_ALMACEN = 'medicoSesionId';     // sessionStorage: cada pestaña tie
 
 const esperar = (ms) => new Promise(resolver => setTimeout(resolver, ms));
 
-// Solo lo que la aplicación necesita saber del médico (nunca el correo).
+// Solo lo que la aplicación necesita saber del médico (nunca la contraseña).
 // consultorioId decide qué pacientes e historiales ve sin pedir permiso.
 
 const publico = ({ id, nombre, apellidos, consultorioId }) => ({ id, nombre, apellidos, consultorioId });
 
 /** Inicia sesión. Responde { success: true, medico } o { success: false, message }. */
-export async function iniciarSesion(correo, clave) {
+export async function iniciarSesion(usuario, clave) {
     if (USAR_API) {
         const respuesta = await fetch(URL_API, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ correo, clave })
+            body: JSON.stringify({ usuario, clave })
         });
         return respuesta.json();
     }
     
     await esperar(300);
     
-    const buscado = correo.trim().toLowerCase();
-    const medico = (await obtenerMedicos()).find(m => m.correo.toLowerCase() === buscado);
+    const buscado = usuario.trim().toLowerCase();
+    const medico = (await obtenerMedicos()).find(m => m.usuario.toLowerCase() === buscado);
     
-    // Mensaje genérico: no revela si lo que falló fue el correo o la contraseña
-    if (!medico || medico.clave !== clave) return { success: false, message: 'Correo o contraseña incorrectos.' };  
+    // Mensaje genérico: no revela si lo que falló fue el usuario o la contraseña
+    if (!medico || medico.clave !== clave) return { success: false, message: 'Usuario o contraseña incorrectos.' };  
     
     sessionStorage.setItem(CLAVE_ALMACEN, String(medico.id));
     return { success: true, medico: publico(medico) };
@@ -101,7 +101,7 @@ export async function actualizarPerfil(cambios) {
 const SIN_SESION = { success: false, codigo: 'SIN_SESION', message: 'Tu sesión terminó. Vuelve a iniciar sesión.' };
 const MIN_CLAVE = 8;
 
-// Envía un cambio de la cuenta al servidor (correo o contraseña) con la misma forma de respuesta
+// Envía el cambio de contraseña al servidor con la misma forma de respuesta
 async function enviarCambioCuenta(ruta, cuerpo) {
     const respuesta = await fetch(`${URL_API}/${ruta}`, {
         method: 'PATCH',
@@ -110,45 +110,6 @@ async function enviarCambioCuenta(ruta, cuerpo) {
     });
     if (respuesta.status === 401) return SIN_SESION;
     return respuesta.json();
-}
-
-/**
-* Cambia el correo con el que inicia sesión el médico en sesión. Pide la contraseña actual.
-* Responde { success: true } o { success: false, codigo, message, campo? }.
-* Con el servidor real conviene NO aplicar el cambio de inmediato: mandar un enlace de confirmación
-* al correo nuevo y avisar al correo anterior, por si alguien más está usando la cuenta.
-*/
-
-export async function cambiarCorreo(correoNuevo, claveActual) {
-    if (USAR_API) return enviarCambioCuenta('correo', { correoNuevo, claveActual });
-    
-    await esperar(300);
-    
-    const id = sessionStorage.getItem(CLAVE_ALMACEN);
-    if (!id) return SIN_SESION;
-    
-    const correo = String(correoNuevo ?? '').trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
-        return { success: false, codigo: 'CORREO_INVALIDO', message: 'Escribe un correo válido.', campo: 'correo-nuevo' };
-    }
-    if (!claveActual) {
-        return { success: false, codigo: 'CLAVE_REQUERIDA', message: 'Escribe tu contraseña actual.', campo: 'clave-actual' };
-    }
-    // En la simulación la contraseña actual NO se verifica (el JSON no guarda contraseñas)
-    
-    const medicos = await obtenerMedicos();
-    const yo = medicos.find(m => m.id === Number(id));
-    if (!yo) return SIN_SESION;
-    
-    if (yo.correo.toLowerCase() === correo) {
-        return { success: false, codigo: 'MISMO_CORREO', message: 'Ese ya es tu correo actual.', campo: 'correo-nuevo' };
-    }
-    if (medicos.some(m => m.id !== yo.id && m.correo.toLowerCase() === correo)) {
-        return { success: false, codigo: 'CORREO_EN_USO', message: 'Ese correo ya está registrado en otra cuenta.', campo: 'correo-nuevo' };
-    }
-    
-    await actualizarCorreoMedico(yo.id, correo);
-    return { success: true };
 }
 
 /**

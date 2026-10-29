@@ -16,15 +16,15 @@
 }
 
 /* paleta de colores clara */
-/* :root {
+:root[data-tema = "claro"] {
     --color-fondo: #f8fafc;
     --color-superficie: #eeeeee;
     --color-texto: #1E293B;
     --color-acento: #0EA5E9;
     --color-acento-hover: #4dc6fe;
-    --color-borde: #E2E8F0;
-    --color-placeholder: #94A3B8;
-} */
+    --color-borde: #94a3b8;
+    --color-placeholder: #475569;
+}
 
 * {
     box-sizing: border-box;

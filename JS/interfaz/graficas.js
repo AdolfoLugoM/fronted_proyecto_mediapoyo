@@ -20,9 +20,11 @@ function mostrarError(texto) {
     mensaje.hidden = false;
 }
 
+const graficas = [];                         // para volver a dibujarlas al cambiar de tema
+
 const colorDe = (i) => COLORES_ENFERMEDAD[i % COLORES_ENFERMEDAD.length];
 
-// Toma los colores de la paleta CSS para que las gráficas combinen con el tema oscuro
+// Toma los colores de la paleta CSS para que las gráficas combinen con el tema activo
 function aplicarEstiloBase() {
     const css = getComputedStyle(document.documentElement);
     Chart.defaults.color = css.getPropertyValue('--color-placeholder').trim();
@@ -32,17 +34,15 @@ function aplicarEstiloBase() {
 
 // Pastel: qué parte de los casos del top 5 aporta cada enfermedad
 function dibujarPastel(top) {
-    const colorBorde = getComputedStyle(document.documentElement).getPropertyValue('--color-fondo').trim();
-    
-    new Chart(lienzoPastel, {
+    graficas.push(new Chart(lienzoPastel, {
         type: 'pie',
         data: {
             labels: top.enfermedades.map(e => e.nombre),
             datasets: [{
                 data: top.enfermedades.map(e => e.total),
                 backgroundColor: top.enfermedades.map((_, i) => colorDe(i)),
-                borderColor: colorBorde,             // separa las porciones con el color de la tarjeta
-                borderWidth: 2
+                borderWidth: 0,                      // sin borde entre porciones (ni al pasar el cursor)
+                hoverBorderWidth: 0
             }]
         },
         options: {
@@ -62,12 +62,12 @@ function dibujarPastel(top) {
                 }
             }
         }
-    });
+    }));
 }
 
 // Barras apiladas: casos de cada región, divididos por enfermedad
 function dibujarBarras(top) {
-    new Chart(lienzoBarras, {
+    graficas.push(new Chart(lienzoBarras, {
         type: 'bar',
         data: {
             labels: top.regiones,
@@ -87,12 +87,12 @@ function dibujarBarras(top) {
                 y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Casos' } }
             }
         }
-    });
+    }));
 }
 
 // Líneas: una por enfermedad, casos de cada mes sumando todas las regiones
 function dibujarLineas(top) {
-    new Chart(lienzoLinea, {
+    graficas.push(new Chart(lienzoLinea, {
         type: 'line',
         data: {
             labels: top.meses,
@@ -112,7 +112,22 @@ function dibujarLineas(top) {
             plugins: { legend: { position: 'bottom' } },
             scales: { y: { beginAtZero: true, title: { display: true, text: 'Casos' } } }
         }
-    });
+    }));
+}
+
+function dibujarTodas(top) {
+    dibujarPastel(top);
+    dibujarBarras(top);
+    dibujarLineas(top);
+}
+
+// Chart.js guarda los colores al crear la gráfica: al cambiar de tema hay que dibujarlas de nuevo
+function redibujarAlCambiarTema(top) {
+    new MutationObserver(() => {
+        graficas.splice(0).forEach(grafica => grafica.destroy());
+        aplicarEstiloBase();
+        dibujarTodas(top);
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-tema'] });
 }
 
 async function iniciar() {
@@ -133,9 +148,8 @@ async function iniciar() {
             return;
         }
         
-        dibujarPastel(top);
-        dibujarBarras(top);
-        dibujarLineas(top);
+        dibujarTodas(top);
+        redibujarAlCambiarTema(top);
     } catch (error) {
         console.error('Error al cargar los datos de las gráficas:', error);
         mostrarError('No se pudieron cargar los datos. Abre la página con Live Server y revisa la ruta del JSON.');

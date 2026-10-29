@@ -1,7 +1,6 @@
 // Perfil del médico en sesión:
 //  - su nombre completo aparece dentro del sidebar
-//  - en la barra superior hay un ícono de usuario que muestra el nombre al pasar el cursor
-//  - ambos abren el modal para editar el perfil (solo "Cancelar" y "Guardar")
+//  - el botón del sidebar abre el modal para editar el perfil (solo "Cancelar" y "Guardar")
 //  - desde ese modal se llega a cambiar la contraseña (ver seguridadCuenta.js)
 
 import { obtenerMedicoActual, actualizarPerfil } from '../servicios/sesionServicio.js';
@@ -10,7 +9,6 @@ import { mostrarAviso } from './avisos.js';
 const botonSidebar = document.getElementById('perfil-sidebar');
 const nombreSidebar = document.getElementById('perfil-nombre');
 const especialidadSidebar = document.getElementById('perfil-especialidad');
-const botonBarra = document.getElementById('btn-perfil');
 
 const modal = document.getElementById('modal-editar-perfil');
 const formulario = document.getElementById('formulario-editar-perfil');
@@ -21,23 +19,17 @@ const CAMPOS = ['nombre', 'apellidos'];   // name del campo = propiedad del méd
 
 let medicoActual = null;
 let guardando = false;
-let focoAnterior = null;         // el botón con el que se abrió (sidebar o barra superior)
+let focoAnterior = null;         // el botón con el que se abrió
 
-// ----- Mostrar al médico en el sidebar y en la barra superior -----
+// ----- Mostrar al médico en el sidebar -----
 
 function mostrarMedico(medico) {
     medicoActual = medico;
-    
+
     const nombre = medico ? `${medico.nombre} ${medico.apellidos}` : 'Sin sesión';
-    
+
     if (nombreSidebar) nombreSidebar.textContent = nombre;
-    
-    if (botonBarra) {
-        // El texto del cuadro flotante sale de data-tooltip (ver .btn-perfil en Navegador.css)
-        botonBarra.dataset.tooltip = nombre;
-        botonBarra.setAttribute('aria-label', `Perfil de ${nombre}`);
-    }
-    
+
     botonSidebar?.setAttribute('aria-label', `Editar perfil de ${nombre}`);
 }
 
@@ -50,7 +42,7 @@ function bloquear(estado) {
     btnGuardar.textContent = estado ? 'Guardando...' : 'Guardar';
 }
 
-// Exportadas para que los modales de correo y contraseña puedan cerrar el perfil y regresar a él.
+// Exportadas para que el modal de contraseña pueda cerrar el perfil y regresar a él.
 // conservarFoco: al regresar de otro modal, el foco debe volver al botón que abrió el perfil al principio.
 export function abrirPerfil({ conservarFoco = false } = {}) {
     if (!medicoActual) {
@@ -76,7 +68,6 @@ export function cerrarPerfil({ restaurarFoco = true } = {}) {
 }
 
 botonSidebar?.addEventListener('click', () => abrirPerfil());
-botonBarra?.addEventListener('click', () => abrirPerfil());
 btnCancelar?.addEventListener('click', () => cerrarPerfil());
 
 // Escape = Cancelar. No se cierra al hacer clic fuera, para no perder lo escrito por accidente.
@@ -138,7 +129,13 @@ formulario?.addEventListener('submit', async (evento) => {
 // ----- Carga inicial -----
 
 obtenerMedicoActual()
-    .then(mostrarMedico)
+    .then((medico) => {
+        if (!medico) {
+            window.location.href = 'login.html';
+            return;
+        }
+        mostrarMedico(medico);
+    })
     .catch((error) => {
         console.error('No se pudo cargar el perfil del médico:', error);
         mostrarMedico(null);

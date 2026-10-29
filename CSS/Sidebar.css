@@ -203,6 +203,7 @@
     background-color: var(--color-fondo) !important;
     border: 1px solid var(--color-borde) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    color: var(--color-texto);        /* las rayas del ícono toman este color (cambia con el tema) */
     cursor: pointer;
     display: none;
     align-items: center;
@@ -212,6 +213,7 @@
 
 .btn-abrir-sidebar:hover {
     border-color: var(--color-acento) !important;
+    color: var(--color-acento);
 }
 
 /* Se muestra solo cuando el sidebar está colapsado */
@@ -221,10 +223,9 @@
 }
 
 .icono-menu-hamburger {
-    width: 40px;
-    height: 40px;
+    width: 24px;
+    height: 24px;
     display: block;
-    object-fit: contain;
 }
 
 /* ===== PERFIL DEL MÉDICO (parte baja del sidebar) ===== */
