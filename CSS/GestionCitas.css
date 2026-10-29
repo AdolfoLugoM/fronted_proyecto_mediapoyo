@@ -73,16 +73,35 @@
 .cita-evento {
     display: flex;
     flex-direction: column;
-    padding: 2px 4px;
+    gap: 1px;
+    padding: 2px 6px;
     overflow: hidden;
     font-size: 0.75rem;
-    line-height: 1.25;
+    line-height: 1.3;
 }
 
 .cita-evento strong {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    color: var(--color-texto);   /* blanco en tema oscuro, oscuro en tema claro */
+}
+
+.cita-evento span {
+    color: var(--color-texto);
+    font-weight: 600;
+    opacity: 1;              /* evita que se vea atenuada */
+}
+
+/* Más alto cada renglón de hora, para que la cita tenga espacio */
+#vista-gestion-citas .fc .fc-timegrid-slot {
+    height: 2.8em;
+}
+
+/* La cita ocupa todo su bloque y no se encima con la del lado */
+#vista-gestion-citas .fc .fc-timegrid-event {
+    min-height: 2.6em;
+    border-radius: 4px;
 }
 
 /* ===== VENTANA DE LA CITA (reutiliza el modal de Alertas.css) ===== */
@@ -166,4 +185,22 @@
 /* display:flex del botón le gana al atributo hidden; esto lo vuelve a ocultar */
 .modal-cita .btn-modal[hidden] {
     display: none;
+}
+
+/* Botón "Nueva cita": solo visible en la vista Agenda */
+#vista-gestion-citas .fc .fc-nuevaCita-button {
+    display: none;
+}
+
+#vista-gestion-citas.vista-agenda .fc .fc-nuevaCita-button {
+    display: inline-block;
+    background-color: #38bdf8;
+    border-color: #38bdf8;
+    color: #0f172a;
+    font-weight: 600;
+}
+
+#vista-gestion-citas .fc .fc-nuevaCita-button:hover {
+    background-color: #0ea5e9;
+    border-color: #0ea5e9;
 }

@@ -30,7 +30,7 @@
     color: var(--color-placeholder);
 }
 
-/* ===== ENLACES "Cambiar correo" / "Cambiar contraseña" dentro del modal de perfil ===== */
+/* ===== ENLACES "Cambiar contraseña" dentro del modal de perfil ===== */
 .enlaces-cuenta {
     display: flex;
     flex-wrap: wrap;

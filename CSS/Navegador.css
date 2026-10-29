@@ -168,7 +168,7 @@ main:not(.colapsado) .titulo-body {
     gap: 8px;
 }
 
-.btn-perfil {
+.btn-tema {
     position: relative;
     display: flex;
     align-items: center;
@@ -183,14 +183,14 @@ main:not(.colapsado) .titulo-body {
     transition: color 0.2s ease, border-color 0.2s ease;
 }
 
-.btn-perfil:hover,
-.btn-perfil:focus-visible {
+.btn-tema:hover,
+.btn-tema:focus-visible {
     color: var(--color-acento);
     border-color: var(--color-acento);
 }
 
 /* Cuadro flotante con el nombre y la especialidad (el texto lo pone perfil.js en data-tooltip) */
-.btn-perfil[data-tooltip]::after {
+.btn-tema[data-tooltip]::after {
     content: attr(data-tooltip);
     position: absolute;
     top: calc(100% + 8px);
@@ -206,7 +206,7 @@ main:not(.colapsado) .titulo-body {
     font-size: 0.85rem;
     line-height: 1.4;
     text-align: left;
-    white-space: pre-line;             /* respeta el salto de línea entre nombre y especialidad */
+    white-space: nowrap;             /* respeta el salto de línea entre nombre y especialidad */
     color: var(--color-texto);
     opacity: 0;
     transform: translateY(-4px);
@@ -214,8 +214,38 @@ main:not(.colapsado) .titulo-body {
     transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-.btn-perfil[data-tooltip]:hover::after,
-.btn-perfil[data-tooltip]:focus-visible::after {
+.btn-tema[data-tooltip]:hover::after,
+.btn-tema[data-tooltip]:focus-visible::after {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* Sol en tema oscuro, luna en tema claro */
+.btn-tema .icono-luna,
+:root[data-tema="claro"] .btn-tema .icono-sol {
+    display: none;
+}
+
+:root[data-tema="claro"] .btn-tema .icono-luna {
+    display: block;
+}
+/* Tema claro: borde negro en el buscador y los botones de la barra superior */
+:root[data-tema="claro"] .formulario-busqueda:not(:focus-within),
+:root[data-tema="claro"] .btn-tema:not(:hover):not(:focus-visible),
+:root[data-tema="claro"] .btn-cerrar-sesion:not(:hover) {
+    border-color: #000;
+}
+
+/* Tema claro: textos e íconos de la barra superior en negro */
+:root[data-tema="claro"] .formulario-busqueda .icono-busqueda,
+:root[data-tema="claro"] .formulario-busqueda input[type="search"],
+:root[data-tema="claro"] .formulario-busqueda .boton-limpiar,
+:root[data-tema="claro"] .btn-tema:not(:hover):not(:focus-visible),
+:root[data-tema="claro"] .btn-cerrar-sesion:not(:hover) {
+    color: #000;
+}
+
+:root[data-tema="claro"] .formulario-busqueda input[type="search"]::placeholder {
+    color: #000;
+    opacity: 0.6;                      /* el texto de ayuda se distingue de lo escrito */
 }

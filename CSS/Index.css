@@ -1,7 +1,7 @@
 /* ========================================================================== BODY (index): estructura general del área de contenido y cambio de vistas ========================================================================== */
 
 h1 {
-    color: #ffffff;
+    color: var(--color-texto);
     font-size: 1.5rem;
     margin-bottom: 16px;
     text-align: center;
