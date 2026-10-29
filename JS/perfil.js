@@ -58,12 +58,12 @@ export function abrirPerfil({ conservarFoco = false } = {}) {
         return;
     }
     if (!modal) return;
-
+    
     if (!conservarFoco) focoAnterior = document.activeElement;
     for (const campo of CAMPOS) {
         formulario.elements[campo].value = medicoActual[campo] ?? '';
     }
-
+    
     modal.classList.add('activo');
     formulario.elements.nombre.focus();
 }
@@ -89,31 +89,31 @@ document.addEventListener('keydown', (evento) => {
 formulario?.addEventListener('submit', async (evento) => {
     evento.preventDefault();
     if (guardando || !medicoActual) return;
-
+    
     // Quita espacios sobrantes para que "required" detecte campos con solo espacios
     for (const campo of CAMPOS) {
         formulario.elements[campo].value = formulario.elements[campo].value.trim();
     }
     if (!formulario.reportValidity()) return;
-
+    
     // Solo lo que de verdad cambió
     const cambios = {};
     for (const campo of CAMPOS) {
         const valor = formulario.elements[campo].value;
         if (valor !== (medicoActual[campo] ?? '')) cambios[campo] = valor;
     }
-
+    
     if (Object.keys(cambios).length === 0) {
         mostrarAviso('No hay cambios que guardar.', 'exito');
         cerrarPerfil();
         return;
     }
-
+    
     bloquear(true);
-
+    
     try {
         const resultado = await actualizarPerfil(cambios);
-
+        
         if (!resultado.success) {
             mostrarAviso(resultado.message ?? 'No se pudo actualizar el perfil.', 'error');
             if (resultado.codigo === 'SIN_SESION') {
@@ -122,7 +122,7 @@ formulario?.addEventListener('submit', async (evento) => {
             }
             return;
         }
-
+        
         mostrarMedico(resultado.medico);       // actualiza sidebar y cuadro flotante al momento
         bloquear(false);
         cerrarPerfil();

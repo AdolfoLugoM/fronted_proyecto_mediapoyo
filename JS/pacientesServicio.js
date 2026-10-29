@@ -24,10 +24,10 @@ let cachePacientes = null;
 
 async function cargarJSON() {
     if (cachePacientes) return cachePacientes;
-
+    
     const respuesta = await fetch(URL_JSON);
     if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
-
+    
     const datos = await respuesta.json();
     cachePacientes = datos.pacientes;
     return cachePacientes;
@@ -59,18 +59,18 @@ export async function buscarPacientes(termino, { pagina = 1, porPagina = 10 } = 
         if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
         return respuesta.json();
     }
-
+    
     await esperar(300);                        // simula la demora de una red real
-
+    
     const [pacientes, medico] = await Promise.all([cargarJSON(), obtenerMedicoActual()]);
     if (!medico) return { total: 0, pagina, porPagina, resultados: [] };
-
+    
     const buscado = normalizar(termino);
     const coincidencias = pacientes.filter(p =>
         atiendeEn(p, medico.consultorioId) &&
         normalizar(`${p.nombre} ${p.apellidos} ${p.curp}`).includes(buscado)
     );
-
+    
     const inicio = (pagina - 1) * porPagina;
     return {
         total: coincidencias.length,
@@ -88,7 +88,7 @@ export async function obtenerPaciente(id) {
         if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
         return respuesta.json();
     }
-
+    
     await esperar(150);
     const paciente = (await cargarJSON()).find(p => p.id === Number(id));
     return paciente ? publico(paciente) : null;
@@ -121,7 +121,7 @@ export async function buscarPacientePorCurp(curp, consultorioId) {
 export async function resumenPacientes(ids) {
     const buscados = new Set(ids.map(Number));
     const resumen = new Map();
-
+    
     for (const p of await cargarJSON()) {
         if (buscados.has(p.id)) resumen.set(p.id, { id: p.id, nombre: p.nombre, apellidos: p.apellidos, curp: p.curp });
     }
@@ -146,18 +146,18 @@ export async function crearPaciente(paciente) {
         });
         return respuesta.json();
     }
-
+    
     await esperar(300);
-
+    
     const medico = await obtenerMedicoActual();
     if (!medico) {
         return { success: false, codigo: 'SIN_SESION', message: 'Inicia sesión como médico para registrar pacientes.' };
     }
-
+    
     const pacientes = await cargarJSON();
     const curp = paciente.curp.trim().toUpperCase();
     const existente = pacientes.find(p => p.curp.toUpperCase() === curp);
-
+    
     if (existente) {
         if (atiendeEn(existente, medico.consultorioId)) {
             return {
@@ -166,13 +166,13 @@ export async function crearPaciente(paciente) {
                 message: 'Este paciente ya está registrado en tu consultorio. Búscalo en la barra superior.'
             };
         }
-
+        
         // Se atiende en otro consultorio: se vincula sin crear otro registro y sin cambiar sus datos
         existente.consultorios.push(medico.consultorioId);
         registrarAuditoria('vincular_paciente', { medicoId: medico.id, pacienteId: existente.id });
         return { success: true, paciente: publico(existente) };
     }
-
+    
     const nuevo = {
         id: Math.max(0, ...pacientes.map(p => p.id)) + 1,
         ...paciente,
@@ -199,26 +199,26 @@ export async function actualizarPaciente(id, cambios) {
         });
         return respuesta.json();
     }
-
+    
     await esperar(300);
-
+    
     const medico = await obtenerMedicoActual();
     if (!medico) {
         return { success: false, codigo: 'SIN_SESION', message: 'Inicia sesión como médico para editar pacientes.' };
     }
-
+    
     const pacientes = await cargarJSON();
     const paciente = pacientes.find(p => p.id === Number(id));
     if (!paciente || !atiendeEn(paciente, medico.consultorioId)) {
         return { success: false, codigo: 'NO_ENCONTRADO', message: 'No se encontró a este paciente en tu consultorio.' };
     }
-
+    
     // Solo se copian los campos permitidos (aunque manden otros, se ignoran)
     const limpios = {};
     for (const campo of CAMPOS_EDITABLES) {
         if (campo in cambios) limpios[campo] = String(cambios[campo] ?? '').trim();
     }
-
+    
     if ('curp' in limpios) {
         limpios.curp = limpios.curp.toUpperCase();
         const otro = pacientes.find(p => p.id !== paciente.id && p.curp.toUpperCase() === limpios.curp);
@@ -226,7 +226,7 @@ export async function actualizarPaciente(id, cambios) {
             return { success: false, codigo: 'CURP_DUPLICADA', message: 'Esa CURP ya pertenece a otro paciente registrado.' };
         }
     }
-
+    
     Object.assign(paciente, limpios);
     registrarAuditoria('editar_paciente', { medicoId: medico.id, pacienteId: paciente.id, campos: Object.keys(limpios) });
     return { success: true, paciente: publico(paciente) };

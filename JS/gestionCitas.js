@@ -98,18 +98,18 @@ function configurarModo(nuevoModo) {
     const crear = modo === 'crear';
     const editar = modo === 'editar';
     const ver = modo === 'ver';
-
+    
     titulo.textContent = crear ? 'Nueva cita' : editar ? 'Editar cita' : 'Cita';
-
+    
     grupoCurp.hidden = !crear;
     campoCurp.disabled = !crear;
-
+    
     grupoFecha.hidden = !editar;
     campoFecha.disabled = !editar;
-
+    
     campoHora.disabled = ver;
     textoPaciente.hidden = crear;
-
+    
     btnEliminar.hidden = !editar;
     btnGuardar.hidden = ver;
     btnGuardar.textContent = crear ? 'Agendar' : 'Guardar';
@@ -133,12 +133,12 @@ function cerrarModal() {
 function abrirNueva(fecha, hora = '') {
     formulario.reset();
     configurarModo('crear');
-
+    
     fechaElegida = fecha;
     citaActual = null;
     textoFecha.textContent = fechaLarga(fecha);
     campoHora.value = hora;
-
+    
     abrirModal(campoCurp);
 }
 
@@ -146,23 +146,23 @@ function abrirNueva(fecha, hora = '') {
 function abrirCita(evento) {
     const inicio = evento.start;
     const pasada = inicio < new Date();
-
+    
     formulario.reset();
     configurarModo(pasada ? 'ver' : 'editar');
-
+    
     citaActual = { id: evento.id, inicio, paciente: evento.extendedProps.paciente };
     fechaElegida = aFechaISO(inicio);
-
+    
     textoFecha.textContent = fechaLarga(fechaElegida);
     const paciente = citaActual.paciente;
     textoPaciente.textContent = paciente
         ? `Paciente: ${nombrePaciente(paciente)} · CURP ${paciente.curp}`
         : 'Paciente sin datos';
-
+    
     campoFecha.value = fechaElegida;
     campoFecha.min = aFechaISO(new Date());    // no se puede mover a un día que ya pasó
     campoHora.value = aHora(inicio);
-
+    
     abrirModal(pasada ? btnCancelar : campoHora);
 }
 
@@ -185,17 +185,17 @@ function cerrarConfirmacion() {
 
 async function confirmarEliminacion() {
     if (guardando || !citaActual) return;
-
+    
     guardando = true;
     btnSiEliminar.disabled = true;
     btnNoEliminar.disabled = true;
     btnSiEliminar.textContent = 'Eliminando...';
-
+    
     try {
         const resultado = await eliminarCita(citaActual.id);
         guardando = false;
         modalEliminar.classList.remove('activo');
-
+        
         if (resultado.success) {
             cerrarModal();
             calendario?.refetchEvents();
@@ -219,12 +219,12 @@ async function confirmarEliminacion() {
 // ----- Calendario -----
 function iniciarCalendario() {
     if (calendario) return;
-
+    
     if (typeof FullCalendar === 'undefined') {
         mostrarAviso('No se pudo cargar FullCalendar. Revisa tu conexión o la etiqueta <script> del index.');
         return;
     }
-
+    
     calendario = new FullCalendar.Calendar(contenedor, {
         initialView: 'dayGridMonth',
         locale: 'es',
@@ -243,7 +243,7 @@ function iniciarCalendario() {
         slotDuration: `00:${dosDigitos(DURACION_CITA_MIN)}:00`,
         slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
         eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
-
+        
         // Clic en un día (o en una hora, en la vista semanal): cita nueva
         dateClick(info) {
             const limite = info.allDay ? inicioDeHoy() : new Date();
@@ -253,13 +253,13 @@ function iniciarCalendario() {
             }
             abrirNueva(aFechaISO(info.date), info.allDay ? '' : aHora(info.date));
         },
-
+        
         // Clic en una cita: editarla, eliminarla o (si ya pasó) solo verla
         eventClick(info) {
             info.jsEvent.preventDefault();
             abrirCita(info.event);
         },
-
+        
         // El calendario pide solo las citas del rango visible
         async events(info, exito, fallo) {
             try {
@@ -278,31 +278,31 @@ function iniciarCalendario() {
                 fallo(error);
             }
         },
-
+        
         // Contenido de cada cita, creado con nodos (no con HTML) para que un dato raro no pueda inyectar código
         eventContent(info) {
             const caja = document.createElement('div');
             caja.className = 'cita-evento';
-
+            
             const nombre = document.createElement('strong');
             nombre.textContent = info.event.title;
-
+            
             const hora = document.createElement('span');
             hora.textContent = info.timeText;
-
+            
             caja.append(nombre, hora);
             return { domNodes: [caja] };
         },
-
+        
         // Información al pasar el cursor (tooltip nativo del navegador)
         eventDidMount(info) {
             const pasada = info.event.start < new Date();
             info.el.title = `${info.event.title}\nHora: ${info.timeText}\n${pasada ? 'Cita pasada' : 'Clic para editar o eliminar'}`;
         }
     });
-
+    
     calendario.render();
-
+    
     // El contenedor cambia de ancho al abrir o cerrar el sidebar: el calendario se reajusta solo
     new ResizeObserver(() => calendario.updateSize()).observe(contenedor);
 }
@@ -320,40 +320,40 @@ if (formulario) {
     campoHora.min = HORA_APERTURA;
     campoHora.max = ultimaHoraDeInicio();
     campoHora.step = 900;              // de 15 en 15 minutos
-
+    
     campoCurp.addEventListener('input', () => {
         const { selectionStart, selectionEnd } = campoCurp;
         campoCurp.value = campoCurp.value.toUpperCase();
         campoCurp.setSelectionRange(selectionStart, selectionEnd);
     });
-
+    
     formulario.addEventListener('submit', async (evento) => {
         evento.preventDefault();
         if (guardando || modo === 'ver') return;
-
+        
         if (modo === 'crear') campoCurp.value = campoCurp.value.trim().toUpperCase();
         if (!formulario.reportValidity()) return;
-
+        
         const fecha = modo === 'editar' ? campoFecha.value : fechaElegida;
         const hora = campoHora.value;
-
+        
         if (new Date(`${fecha}T${hora}:00`) < new Date()) {
             mostrarError('No se puede agendar en una fecha u hora que ya pasó.');
             return;
         }
-
+        
         guardando = true;
         btnGuardar.disabled = true;        // evita guardar dos veces con doble clic
         btnEliminar.disabled = true;
         mensajeError.hidden = true;
-
+        
         try {
             const resultado = modo === 'crear'
                 ? await crearCita({ fecha, hora, curp: campoCurp.value })
                 : await actualizarCita(citaActual.id, { fecha, hora });
-
+            
             guardando = false;
-
+            
             if (resultado.success) {
                 const mensaje = modo === 'crear' ? 'Cita agendada con éxito.' : 'Cita actualizada.';
                 cerrarModal();
@@ -371,12 +371,12 @@ if (formulario) {
             btnEliminar.disabled = false;
         }
     });
-
+    
     btnCancelar?.addEventListener('click', cerrarModal);
     btnEliminar?.addEventListener('click', abrirConfirmacion);
     btnNoEliminar?.addEventListener('click', cerrarConfirmacion);
     btnSiEliminar?.addEventListener('click', confirmarEliminacion);
-
+    
     // Escape cierra primero la confirmación (si está abierta) y luego la ventana de la cita.
     // A propósito NO se cierra al hacer clic fuera: se perderían los cambios por accidente.
     document.addEventListener('keydown', (evento) => {

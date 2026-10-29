@@ -151,3 +151,50 @@
 .chip-sintoma button:hover {
     background-color: rgba(255, 255, 255, 0.15);
 }
+
+/* ===== ENFERMEDADES SUGERIDAS A PARTIR DE LOS SÍNTOMAS ===== */
+/* Botones; la elegida en el selector queda marcada (aria-pressed) */
+.enfermedades-sugeridas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.sugeridas-titulo {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--color-placeholder);
+}
+
+.chip-enfermedad {
+    padding: 6px 12px;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 999px;
+    font: inherit;
+    font-size: 0.85rem;
+    color: var(--color-texto);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.chip-enfermedad:hover,
+.chip-enfermedad:focus-visible {
+    border-color: var(--color-acento);
+}
+
+.chip-enfermedad[aria-pressed="true"] {
+    background-color: rgba(56, 189, 248, 0.18);
+    border-color: var(--color-acento);
+    font-weight: 600;
+}
+
+/* En pantallas angostas, peso y altura van uno debajo del otro */
+@media (max-width: 500px) {
+    #vista-consulta .fila-formulario {
+        flex-direction: column;
+        gap: 0;
+    }
+}

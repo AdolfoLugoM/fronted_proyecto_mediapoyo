@@ -42,18 +42,6 @@ HISTORIAL DE CONSULTAS (#vista-historial) y acciones de la tabla de resultados
     border-color: var(--color-acento-hover);
 }
 
-/* Acción delicada (acceso de emergencia) */
-.boton-tabla--peligro {
-    border-color: var(--color-error);
-    color: var(--color-error);
-}
-
-.boton-tabla--peligro:hover {
-    background-color: var(--color-error);
-    border-color: var(--color-error);
-    color: var(--color-texto);
-}
-
 /* Botón con aspecto de enlace */
 .boton-enlace {
     padding: 0;
@@ -189,7 +177,7 @@ HISTORIAL DE CONSULTAS (#vista-historial) y acciones de la tabla de resultados
     gap: 12px;
 }
 
-/* ===== PERMISO PARA VER CONSULTAS DE OTROS CONSULTORIOS ===== */
+/* ===== LLAVE PARA VER CONSULTAS DE OTROS MÉDICOS ===== */
 .banner-acceso {
     display: grid;
     gap: 10px;
@@ -210,19 +198,6 @@ HISTORIAL DE CONSULTAS (#vista-historial) y acciones de la tabla de resultados
     font-size: 0.9rem;
 }
 
-/* El paciente ya dio su permiso */
-.banner-acceso--concedido {
-    border-style: solid;
-    border-color: var(--color-acento);
-}
-
-/* Acceso de emergencia: siempre en rojo, para que nadie lo confunda con un permiso normal */
-.banner-acceso--emergencia {
-    border-style: solid;
-    border-color: var(--color-error);
-    border-left-width: 4px;
-}
-
 .formulario-codigo {
     display: flex;
     flex-wrap: wrap;
@@ -241,30 +216,7 @@ HISTORIAL DE CONSULTAS (#vista-historial) y acciones de la tabla de resultados
     color: var(--color-texto);
 }
 
-.formulario-emergencia {
-    display: grid;
-    gap: 8px;
-}
-
-.formulario-emergencia label {
-    font-size: 0.85rem;
-    color: var(--color-placeholder);
-}
-
-.formulario-emergencia textarea {
-    width: 100%;
-    padding: 8px 10px;
-    background-color: var(--color-superficie);
-    border: 1px solid var(--color-borde);
-    border-radius: 6px;
-    font: inherit;
-    font-size: 0.9rem;
-    color: var(--color-texto);
-    resize: vertical;
-}
-
-.formulario-codigo input:focus,
-.formulario-emergencia textarea:focus {
+.formulario-codigo input:focus {
     outline: 2px solid var(--color-acento);
     border-color: transparent;
 }
@@ -273,9 +225,17 @@ HISTORIAL DE CONSULTAS (#vista-historial) y acciones de la tabla de resultados
     opacity: 0.6;
 }
 
-.acciones-enlace {
-    display: flex;
-    gap: 16px;
+/* Llave de la consulta: 8 letras y números */
+.formulario-codigo--llave input {
+    width: 16ch;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* El ejemplo se ve tal cual ("Ej." y no "EJ.") */
+.formulario-codigo--llave input::placeholder {
+    text-transform: none;
+    letter-spacing: normal;
 }
 
 .acceso-mensaje {
@@ -293,15 +253,9 @@ HISTORIAL DE CONSULTAS (#vista-historial) y acciones de la tabla de resultados
     color: var(--color-texto);
 }
 
-/* De otro consultorio, ya con permiso: borde distinto para que se note su origen */
+/* De otro médico, ya desbloqueada: borde distinto para que se note su origen */
 .consulta-historial--externa {
     border-left-color: var(--color-placeholder);
-}
-
-/* Sin permiso: apagada */
-.consulta-historial--bloqueada {
-    border-left-color: var(--color-borde);
-    opacity: 0.75;
 }
 
 .consulta-cabecera {
@@ -334,84 +288,37 @@ HISTORIAL DE CONSULTAS (#vista-historial) y acciones de la tabla de resultados
     color: var(--color-placeholder);
 }
 
-.sintomas-consulta {
+.consulta-enfermedad {
+    margin: 10px 0 0;
+    font-size: 0.95rem;
+}
+
+.consulta-enfermedad strong,
+.consulta-notas strong {
+    color: var(--color-placeholder);
+    font-weight: 600;
+}
+
+/* Edad, peso y altura del paciente el día de la consulta */
+.medidas-consulta {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin: 10px 0;
 }
 
-.etiqueta-sintoma {
+.etiqueta-medida {
     padding: 3px 10px;
     background-color: rgba(56, 189, 248, 0.12);
     border: 1px solid var(--color-borde);
     border-radius: 999px;
     font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
 }
 
-.consulta-sin-sintomas {
-    font-size: 0.85rem;
-    font-style: italic;
-    color: var(--color-placeholder);
-}
-
-.consulta-observaciones {
+.consulta-notas {
     margin: 0;
     font-size: 0.9rem;
     white-space: pre-wrap;
 }
 
-.consulta-observaciones strong {
-    color: var(--color-placeholder);
-}
-
-.consulta-protegida {
-    margin: 10px 0 0;
-    font-size: 0.9rem;
-    font-style: italic;
-    color: var(--color-placeholder);
-}
-
-/* ===== SOLO SIMULACIÓN: mensaje que "llega" al teléfono del paciente ===== */
-.bandeja-simulada {
-    position: fixed;
-    bottom: 16px;
-    left: 16px;
-    z-index: 1100;
-    display: grid;
-    gap: 8px;
-    width: min(320px, calc(100vw - 32px));
-    padding: 14px 16px;
-    background-color: var(--color-superficie);
-    border: 2px dashed var(--color-placeholder);
-    border-radius: 14px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-    color: var(--color-texto);
-    animation: aparecerModal 0.2s ease-out;     /* definida en Alertas.css */
-}
-
-.bandeja-simulada__cabecera {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
-}
-
-.bandeja-simulada__etiqueta {
-    padding: 2px 8px;
-    border: 1px solid var(--color-placeholder);
-    border-radius: 999px;
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    color: var(--color-placeholder);
-}
-
-.bandeja-simulada p {
-    margin: 0;
-    font-size: 0.9rem;
-}
-
-.bandeja-simulada .boton-enlace {
-    justify-self: end;
-}

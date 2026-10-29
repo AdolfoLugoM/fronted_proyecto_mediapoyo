@@ -53,19 +53,19 @@ btnCancelarPaciente?.addEventListener('click', () => {
 // Guardar
 formPaciente?.addEventListener('submit', async (evento) => {
     evento.preventDefault();
-
+    
     // Limpia espacios al inicio y al final de los campos de texto
     formPaciente.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], textarea')
         .forEach(campo => { campo.value = campo.value.trim(); });
-
+    
     // Con el valor ya limpio, "required" detecta los que quedaron vacíos
     if (!formPaciente.reportValidity()) return;
-
+    
     btnGuardar.disabled = true;                // evita registrar dos veces con doble clic
-
+    
     try {
         const resultado = await crearPaciente(leerPaciente());
-
+        
         if (!resultado.success) {
             // Por ejemplo, la CURP ya está dada de alta en este consultorio: se avisa y se deja el cursor en ese campo
             mostrarAviso(resultado.message ?? 'No se pudo guardar el paciente.', 'error');
@@ -75,7 +75,7 @@ formPaciente?.addEventListener('submit', async (evento) => {
             }
             return;
         }
-
+        
         formPaciente.reset();
         mostrarAviso('Paciente guardado correctamente.', 'exito');
         abrirConsulta(resultado.paciente);     // sigue la consulta de este paciente
