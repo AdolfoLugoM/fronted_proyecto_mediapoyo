@@ -1,0 +1,103 @@
+{
+    "meta": {
+        "simulado": true,
+        "descripcion": "Catálogo de enfermedades (tabla Enfermedades: EnfermedadID, NombreEnfermedad, Descripcion)."
+    },
+    "enfermedades": [
+        { 
+            "id": 1, 
+            "nombre": "Dengue", 
+            "descripcion": "Infección viral transmitida por el mosquito Aedes aegypti." 
+        },
+        { 
+            "id": 2, 
+            "nombre": "Influenza", 
+            "descripcion": "Infección viral respiratoria de inicio súbito, más común en temporada invernal." 
+        },
+        { 
+            "id": 3, 
+            "nombre": "Infección respiratoria aguda", 
+            "descripcion": "Infección de nariz, garganta o bronquios de menos de 15 días de evolución." 
+        },
+        { 
+            "id": 4, 
+            "nombre": "COVID-19", 
+            "descripcion": "Infección respiratoria causada por el virus SARS-CoV-2." 
+        },
+        { 
+            "id": 5, 
+            "nombre": "Enfermedad diarreica aguda", 
+            "descripcion": "Evacuaciones líquidas frecuentes, generalmente por infección o alimentos contaminados." 
+        },
+        { 
+            "id": 6, 
+            "nombre": "Conjuntivitis", 
+            "descripcion": "Inflamación de la membrana que cubre el ojo." 
+        },
+        { 
+            "id": 7, 
+            "nombre": "Rinitis alérgica", 
+            "descripcion": "Inflamación de la nariz por alergia a polvo, polen u otros alérgenos." 
+        },
+        { 
+            "id": 8, 
+            "nombre": "Gastritis", 
+            "descripcion": "Inflamación de la mucosa del estómago." 
+        },
+        { 
+            "id": 9, 
+            "nombre": "Hipertensión arterial", 
+            "descripcion": "Presión arterial elevada de forma sostenida." 
+        },
+        { 
+            "id": 10, 
+            "nombre": "Arritmia cardiaca", 
+            "descripcion": "Alteración del ritmo o la frecuencia del corazón." 
+        },
+        { 
+            "id": 11, 
+            "nombre": "Insuficiencia cardiaca", 
+            "descripcion": "El corazón no bombea la sangre que el cuerpo necesita." 
+        },
+        { 
+            "id": 12, 
+            "nombre": "Infección de vías urinarias", 
+            "descripcion": "Infección de vejiga, uretra o riñones." 
+        },
+        { 
+            "id": 13, 
+            "nombre": "Artritis", 
+            "descripcion": "Inflamación de una o varias articulaciones." 
+        },
+        { 
+            "id": 14, 
+            "nombre": "Lumbalgia", 
+            "descripcion": "Dolor en la parte baja de la espalda." 
+        },
+        { 
+            "id": 15, 
+            "nombre": "Otitis media", 
+            "descripcion": "Infección del oído medio." 
+        },
+        { 
+            "id": 16, 
+            "nombre": "Bronquitis", 
+            "descripcion": "Inflamación de los bronquios." 
+        },
+        { 
+            "id": 17, 
+            "nombre": "Anemia", 
+            "descripcion": "Disminución de los glóbulos rojos o de la hemoglobina." 
+        },
+        { 
+            "id": 18, 
+            "nombre": "Hepatitis A", 
+            "descripcion": "Infección viral del hígado transmitida por agua o alimentos contaminados." 
+        },
+        { 
+            "id": 19, 
+            "nombre": "Diabetes tipo 2", 
+            "descripcion": "Nivel alto de glucosa en la sangre por resistencia a la insulina." 
+        }
+    ]
+}

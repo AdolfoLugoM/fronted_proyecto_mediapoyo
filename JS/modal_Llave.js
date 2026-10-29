@@ -14,11 +14,11 @@ let resolverActual = null;
 export function mostrarLlaveNueva(llave, folio) {
     return new Promise((resolver) => {
         resolverActual = resolver;
-
+        
         textoFolio.textContent = String(folio).padStart(4, '0');
         textoLlave.textContent = llave;
         btnCopiar.textContent = 'Copiar llave';
-
+        
         modal.classList.add('activo');
         btnCerrar.focus();
     });

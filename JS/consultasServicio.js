@@ -1,40 +1,37 @@
 // Capa de acceso a datos de consultas.
 // HOY lee y guarda sobre JSON/historial.json (en memoria); MAÑANA llama a la API (USAR_API = true).
 //
-// Quién ve el detalle de una consulta (síntomas y observaciones):
-//   1. Los médicos del MISMO consultorio donde se atendió: siempre, sin pedir nada.
-//   2. Un médico de otro consultorio: solo con permiso del paciente, que le dicta un código
-//      de 6 dígitos que le llega a su teléfono. El acceso dura 8 horas.
-//   3. Emergencia (el paciente no puede responder): sin código, con motivo obligatorio, 1 hora.
-// Todo queda en la auditoría. Las alergias y enfermedades crónicas NO pasan por aquí:
-// están en la ficha del paciente y siempre se ven, por seguridad.
+// Tabla Consultas: id, pacienteId, medicoId, enfermedadId, edad, peso (kg), altura (cm), fecha, llave, notas.
+//
+// Quién ve el detalle de una consulta (enfermedad, medidas y notas):
+//   1. El médico que la hizo: siempre, sin pedir nada.
+//   2. Otro médico: solo la consulta cuya LLAVE le dé el paciente (cada consulta tiene la suya
+//      y se le entrega al paciente al terminarla). Desbloquea solo esa consulta.
+// Todo queda en la auditoría. Las notas del PACIENTE (alergias, enfermedades crónicas) NO pasan por aquí:
+// están en su ficha y siempre se ven, por seguridad.
 
-import { obtenerSintomas } from './sintomasServicio.js';
+import { obtenerEnfermedades } from './enfermedadesServicio.js';
 import { obtenerMedicos } from './medicosServicio.js';
-import { obtenerConsultorios } from './consultoriosServicio.js';
 import { obtenerMedicoActual } from './sesionServicio.js';
 import { obtenerPaciente, atiendeEnConsultorio } from './pacientesServicio.js';
 import { registrarAuditoria, fechaHoraLocal } from './auditoriaServicio.js';
+import { calcularEdad } from './utilidades.js';
 
 const USAR_API = false;
 const URL_JSON = 'JSON/historial.json';      // ruta relativa a index.html
 const URL_API = '/api';                       // base de la API futura
 
-const DURACION_CODIGO_MS = 10 * 60_000;       // el código vence a los 10 minutos
-const ESPERA_REENVIO_MS = 30_000;             // tiempo mínimo entre dos códigos
-const MAX_INTENTOS = 5;                       // fallos permitidos antes de anular el código
-const DURACION_ACCESO_MS = 8 * 60 * 60_000;   // acceso concedido por el paciente: una jornada
-const DURACION_EMERGENCIA_MS = 60 * 60_000;   // acceso de emergencia: 1 hora
-const MIN_MOTIVO = 10;                        // caracteres mínimos del motivo de emergencia
+const LARGO_LLAVE = 8;
+const ALFABETO_LLAVE = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // sin O/0 ni I/1, que se confunden al dictar
 
-/** Nombre del evento con el que la simulación "envía" el SMS (lo escucha bandejaSimulada.js). */
-export const EVENTO_MENSAJE_SIMULADO = 'mediapoyo:mensaje-simulado';
+// Rangos válidos de las medidas (los mismos que min/max del formulario)
+const PESO = { min: 0.5, max: 400 };          // kg
+const ALTURA = { min: 30, max: 250 };         // cm
 
 // Lista única en memoria: la lee el historial y a ella se suman las consultas nuevas
 // (viven aquí hasta recargar la página).
 let cacheConsultas = null;
-const codigos = new Map();                    // "medico-paciente" -> { sal, hash, creado, expira, intentos }
-const accesos = new Map();                    // "medico-paciente" -> { tipo, motivo, expira }
+const desbloqueos = new Map();                // "medico-paciente" -> Set con los ids de las consultas desbloqueadas con su llave
 
 async function cargarJSON() {
     if (cacheConsultas) return cacheConsultas;
@@ -48,67 +45,33 @@ async function cargarJSON() {
 
 const esperar = (ms) => new Promise(resolver => setTimeout(resolver, ms));
 const clave = (medicoId, pacienteId) => `${medicoId}-${pacienteId}`;
-const segundos = (ms) => Math.ceil(ms / 1000);
 
 // Respuestas de error con la misma forma que dará la API
 const sinSesion = () => ({ success: false, codigo: 'SIN_SESION', message: 'Inicia sesión como médico para continuar.' });
 const sinPermiso = () => ({ success: false, codigo: 'SIN_PERMISO', message: 'Este paciente no está registrado en tu consultorio.' });
+const datoInvalido = (campo, message) => ({ success: false, codigo: 'DATO_INVALIDO', campo, message });
 
-// ----- Códigos de 6 dígitos -----
+// ----- Llaves -----
 
-const aHex = (bytes) => [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
-const generarSal = () => aHex(crypto.getRandomValues(new Uint8Array(8)));
-
-// Huella SHA-256 de (sal + código). Con servidor real se usaría bcrypt o argon2.
-// crypto.subtle solo existe en contextos seguros: https o localhost / 127.0.0.1 (Live Server cumple).
-async function calcularHash(sal, codigo) {
-    const bytes = new TextEncoder().encode(sal + codigo);
-    return aHex(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)));
+// Llave de una consulta nueva (32 símbolos: 256 % 32 = 0, así que no hay sesgo)
+function generarLlave() {
+    const azar = crypto.getRandomValues(new Uint8Array(LARGO_LLAVE));
+    return [...azar].map(b => ALFABETO_LLAVE[b % ALFABETO_LLAVE.length]).join('');
 }
 
-// 6 dígitos al azar, sin sesgo: se descartan los valores que no caben parejos en 1 000 000
-function generarCodigo() {
-    const limite = Math.floor(2 ** 32 / 1_000_000) * 1_000_000;
-    const azar = new Uint32Array(1);
-    do { crypto.getRandomValues(azar); } while (azar[0] >= limite);
-    return String(azar[0] % 1_000_000).padStart(6, '0');
-}
-
-// SOLO SIMULACIÓN: en lugar de mandar un SMS, avisa a bandejaSimulada.js.
-// Con servidor real, el código se envía por SMS o correo y NUNCA llega al navegador del médico.
-function enviarMensajeSimulado(destino, texto) {
-    window.dispatchEvent(new CustomEvent(EVENTO_MENSAJE_SIMULADO, { detail: { destino, texto } }));
-}
-
-// SOLO SIMULACIÓN: el código ya no sirve (se usó, venció o se anuló), así que se quita de la pantalla
-function retirarMensajeSimulado() {
-    window.dispatchEvent(new CustomEvent(EVENTO_MENSAJE_SIMULADO, { detail: null }));
-}
-
-/** Acceso vigente de un médico al historial de un paciente, o null. Los vencidos se borran. */
-function accesoVigente(medicoId, pacienteId) {
-    const k = clave(medicoId, pacienteId);
-    const acceso = accesos.get(k);
-    if (!acceso) return null;
-
-    if (acceso.expira <= Date.now()) {
-        accesos.delete(k);
-        return null;
-    }
-    return acceso;
-}
+// "q5kr-9mgu" y "Q5KR9MGU" cuentan como la misma llave
+const normalizarLlave = (texto) => String(texto ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
 // ----- Funciones que usa la aplicación -----
 
 /**
 * Historial de un paciente (la consulta más reciente primero).
-* Responde { success: true, acceso, consultas } o { success: false, codigo, message }.
-*   acceso:   null, o { tipo: "codigo" | "emergencia", expira }
-*   consultas: [ { id, fecha, propia, medico, consultorio, detalle } ]
-*     - propia: se atendió en el consultorio del médico en sesión
-*     - detalle: { sintomas: [{ id, nombre }], observaciones }, o null si no tiene permiso.
-*       Si no tiene permiso, medico y consultorio también son null: sin permiso del paciente
-*       no se revela con quién ni dónde se atendió.
+* Responde { success: true, consultas } o { success: false, codigo, message }.
+*   consultas: SOLO las que el médico puede ver: [ { id, fecha, propia, llave, medico, detalle } ]
+*     - propia: la hizo el médico en sesión
+*     - llave:  solo en las propias, para que se la pueda volver a dar al paciente
+*     - detalle: { enfermedad: { id, nombre } | null, edad, peso, altura, notas }
+* Las consultas sin permiso NO se envían: ni siquiera se revela que existen hasta que se escriba su llave.
 */
 export async function obtenerHistorial(pacienteId) {
     if (USAR_API) {
@@ -123,175 +86,59 @@ export async function obtenerHistorial(pacienteId) {
     if (!medico) return sinSesion();
     if (!await atiendeEnConsultorio(id, medico.consultorioId)) return sinPermiso();
 
-    const [consultas, medicos, consultorios, catalogo] = await Promise.all([
+    const [consultas, medicos, enfermedades] = await Promise.all([
         cargarJSON(),
         obtenerMedicos(),
-        obtenerConsultorios(),
-        obtenerSintomas().catch(() => [])       // si el catálogo no carga, se muestra "Síntoma N"
+        obtenerEnfermedades().catch(() => [])  // si el catálogo no carga, se muestra "Enfermedad N"
     ]);
 
     const nombreMedico = new Map(medicos.map(m => [m.id, `${m.nombre} ${m.apellidos}`]));
-    const nombreConsultorio = new Map(consultorios.map(c => [c.id, c.nombre]));
-    const nombreSintoma = new Map(catalogo.map(s => [s.id, s.nombre]));
+    const nombreEnfermedad = new Map(enfermedades.map(e => [e.id, e.nombre]));
 
-    const acceso = accesoVigente(medico.id, id);
-    registrarAuditoria('abrir_historial', { medicoId: medico.id, pacienteId: id, acceso: acceso?.tipo ?? 'consultorio' });
+    const desbloqueadas = desbloqueos.get(clave(medico.id, id)) ?? new Set();
+    registrarAuditoria('abrir_historial', { medicoId: medico.id, pacienteId: id });
 
     return {
         success: true,
-        acceso: acceso ? { tipo: acceso.tipo, expira: fechaHoraLocal(new Date(acceso.expira)) } : null,
         consultas: consultas
-            .filter(c => c.pacienteId === id)
+            .filter(c => c.pacienteId === id && (c.medicoId === medico.id || desbloqueadas.has(c.id)))
             .sort((a, b) => b.fecha.localeCompare(a.fecha))
             .map(c => {
-                const propia = c.consultorioId === medico.consultorioId;
-                const visible = propia || acceso !== null;
-                
+                const propia = c.medicoId === medico.id;
+
                 return {
                     id: c.id,
                     fecha: c.fecha,
                     propia,
-                    medico: visible ? { id: c.medicoId, nombre: nombreMedico.get(c.medicoId) ?? 'Médico no identificado' } : null,
-                    consultorio: visible ? { id: c.consultorioId, nombre: nombreConsultorio.get(c.consultorioId) ?? 'Consultorio no identificado' } : null,
-                    detalle: visible
-                        ? {
-                            observaciones: c.observaciones ?? '',
-                            sintomas: (c.sintomas ?? []).map(s => ({ id: s, nombre: nombreSintoma.get(s) ?? `Síntoma ${s}` }))
-                        }
-                        : null
+                    llave: propia ? c.llave : null,
+                    medico: { id: c.medicoId, nombre: nombreMedico.get(c.medicoId) ?? 'Médico no identificado' },
+                    detalle: {
+                        enfermedad: c.enfermedadId == null
+                            ? null
+                            : { id: c.enfermedadId, nombre: nombreEnfermedad.get(c.enfermedadId) ?? `Enfermedad ${c.enfermedadId}` },
+                        edad: c.edad,
+                        peso: c.peso,
+                        altura: c.altura,
+                        notas: c.notas ?? ''
+                    }
                 };
             })
     };
 }
 
 /**
-* Envía un código de 6 dígitos al teléfono del paciente para que autorice al médico en sesión.
-* Responde { success: true, destino: "••• ••• 0001", expira } o { success: false, codigo, message }.
-* Pedir otro código anula el anterior.
+* Desbloquea UNA consulta de otro médico con la llave que el paciente recibió en ella.
+* Busca entre las consultas de ese paciente la que tenga esa llave.
+* Responde { success: true, consultaId, yaVisible } o { success: false, codigo, message }.
+*   yaVisible: true si esa consulta ya se podía ver (la hizo él, o ya la había desbloqueado)
+* El desbloqueo dura lo que la sesión (en la simulación, hasta recargar la página).
 */
-export async function solicitarCodigo(pacienteId) {
+export async function desbloquearConsulta(pacienteId, llaveEscrita) {
     if (USAR_API) {
-        const respuesta = await fetch(`${URL_API}/pacientes/${encodeURIComponent(pacienteId)}/codigo`, { method: 'POST' });
-        return respuesta.json();
-    }
-
-    await esperar(400);
-
-    const id = Number(pacienteId);
-    const medico = await obtenerMedicoActual();
-    if (!medico) return sinSesion();
-    if (!await atiendeEnConsultorio(id, medico.consultorioId)) return sinPermiso();
-
-    const k = clave(medico.id, id);
-    const anterior = codigos.get(k);
-    const desdeAnterior = anterior ? Date.now() - anterior.creado : Infinity;
-    if (desdeAnterior < ESPERA_REENVIO_MS) {
-        return {
-            success: false,
-            codigo: 'ESPERA',
-            message: `Espera ${segundos(ESPERA_REENVIO_MS - desdeAnterior)} segundos para pedir otro código.`
-        };
-    }
-
-    const paciente = await obtenerPaciente(id);
-    const digitos = (paciente?.telefono ?? '').replace(/\D/g, '');
-    if (digitos.length < 7) {
-        return {
-            success: false,
-            codigo: 'SIN_TELEFONO',
-            message: 'El paciente no tiene un teléfono válido. Actualízalo en recepción o usa el acceso de emergencia.'
-        };
-    }
-
-    const codigo = generarCodigo();
-    const sal = generarSal();
-    const ahora = Date.now();
-
-    codigos.set(k, {                                   // reemplaza al anterior: el viejo deja de servir
-        sal,
-        hash: await calcularHash(sal, codigo),         // se guarda la huella, nunca el código
-        creado: ahora,
-        expira: ahora + DURACION_CODIGO_MS,
-        intentos: 0
-    });
-
-    const destino = `••• ••• ${digitos.slice(-4)}`;
-    enviarMensajeSimulado(destino,
-        `MediApoyo: tu código es ${codigo}. Dáselo solo al médico que te está atendiendo. Vence en 10 minutos.`);
-
-    registrarAuditoria('solicitar_codigo', { medicoId: medico.id, pacienteId: id });
-
-    return { success: true, destino, expira: fechaHoraLocal(new Date(ahora + DURACION_CODIGO_MS)) };
-}
-
-/**
-* Comprueba el código que dictó el paciente. Si es correcto, concede 8 horas de acceso.
-* Responde { success: true, expira } o { success: false, codigo, message } con codigo:
-* SIN_CODIGO, CODIGO_VENCIDO, CODIGO_INCORRECTO o BLOQUEADO (se anuló por demasiados intentos).
-*/
-export async function verificarCodigo(pacienteId, codigoEscrito) {
-    if (USAR_API) {
-        const respuesta = await fetch(`${URL_API}/pacientes/${encodeURIComponent(pacienteId)}/acceso`, {
+        const respuesta = await fetch(`${URL_API}/pacientes/${encodeURIComponent(pacienteId)}/desbloquear`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ codigo: codigoEscrito })     // en el cuerpo, nunca en la URL
-        });
-        return respuesta.json();
-    }
-
-    await esperar(300);
-
-    const id = Number(pacienteId);
-    const medico = await obtenerMedicoActual();
-    if (!medico) return sinSesion();
-
-    const k = clave(medico.id, id);
-    const registro = codigos.get(k);
-
-    if (!registro) {
-        return { success: false, codigo: 'SIN_CODIGO', message: 'No hay un código vigente. Solicita uno nuevo.' };
-    }
-    if (registro.expira <= Date.now()) {
-        codigos.delete(k);
-        retirarMensajeSimulado();
-        return { success: false, codigo: 'CODIGO_VENCIDO', message: 'El código venció. Solicita uno nuevo.' };
-    }
-
-    const limpio = String(codigoEscrito).replace(/\D/g, '');
-    if (await calcularHash(registro.sal, limpio) !== registro.hash) {
-        registro.intentos += 1;
-
-        if (registro.intentos >= MAX_INTENTOS) {
-            codigos.delete(k);
-            retirarMensajeSimulado();
-            return { success: false, codigo: 'BLOQUEADO', message: 'Demasiados intentos. El código se anuló; solicita uno nuevo.' };
-        }
-        return {
-            success: false,
-            codigo: 'CODIGO_INCORRECTO',
-            message: `Código incorrecto. Intentos restantes: ${MAX_INTENTOS - registro.intentos}.`
-        };
-    }
-
-    codigos.delete(k);                                 // un solo uso
-    retirarMensajeSimulado();
-    const expira = Date.now() + DURACION_ACCESO_MS;
-    accesos.set(k, { tipo: 'codigo', motivo: null, expira });
-    registrarAuditoria('acceso_codigo', { medicoId: medico.id, pacienteId: id });
-
-    return { success: true, expira: fechaHoraLocal(new Date(expira)) };
-}
-
-/**
-* Acceso de emergencia: sin código, con motivo obligatorio, por 1 hora.
-* Responde { success: true, expira } o { success: false, codigo, message }.
-*/
-export async function accesoEmergencia(pacienteId, motivo) {
-    if (USAR_API) {
-        const respuesta = await fetch(`${URL_API}/pacientes/${encodeURIComponent(pacienteId)}/acceso-emergencia`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ motivo })
+            body: JSON.stringify({ llave: llaveEscrita })        // en el cuerpo, nunca en la URL
         });
         return respuesta.json();
     }
@@ -303,23 +150,37 @@ export async function accesoEmergencia(pacienteId, motivo) {
     if (!medico) return sinSesion();
     if (!await atiendeEnConsultorio(id, medico.consultorioId)) return sinPermiso();
 
-    const texto = (motivo ?? '').trim();
-    if (texto.length < MIN_MOTIVO) {
-        return { success: false, codigo: 'MOTIVO_REQUERIDO', message: `Describe el motivo (al menos ${MIN_MOTIVO} caracteres).` };
+    const buscada = normalizarLlave(llaveEscrita);
+    if (buscada.length !== LARGO_LLAVE) {
+        return { success: false, codigo: 'LLAVE_INVALIDA', message: `La llave tiene ${LARGO_LLAVE} caracteres.` };
     }
 
-    // Si ya tiene un acceso que dura más (por ejemplo, el del código), no se acorta
-    const vigente = accesoVigente(medico.id, id);
-    if (vigente) return { success: true, expira: fechaHoraLocal(new Date(vigente.expira)) };
+    const consulta = (await cargarJSON()).find(c => c.pacienteId === id && normalizarLlave(c.llave) === buscada);
 
-    const expira = Date.now() + DURACION_EMERGENCIA_MS;
-    accesos.set(clave(medico.id, id), { tipo: 'emergencia', motivo: texto, expira });
-    registrarAuditoria('acceso_emergencia', { medicoId: medico.id, pacienteId: id, motivo: texto });
+    if (!consulta) {
+        registrarAuditoria('llave_incorrecta', { medicoId: medico.id, pacienteId: id });
+        return { success: false, codigo: 'LLAVE_INCORRECTA', message: 'Ninguna consulta de este paciente tiene esa llave.' };
+    }
 
-    return { success: true, expira: fechaHoraLocal(new Date(expira)) };
+    // Si la hizo él mismo o ya la había desbloqueado, no hay nada nuevo que desbloquear
+    const k = clave(medico.id, id);
+    if (!desbloqueos.has(k)) desbloqueos.set(k, new Set());
+    const yaVisible = consulta.medicoId === medico.id || desbloqueos.get(k).has(consulta.id);
+
+    if (!yaVisible) {
+        desbloqueos.get(k).add(consulta.id);
+        registrarAuditoria('desbloquear_consulta', { medicoId: medico.id, pacienteId: id, consultaId: consulta.id });
+    }
+
+    return { success: true, consultaId: consulta.id, yaVisible };
 }
 
-/** Guarda una consulta nueva a nombre del médico en sesión y de su consultorio. Responde { success, id }. */
+/**
+* Guarda una consulta nueva a nombre del médico en sesión.
+* Recibe { pacienteId, enfermedadId (o null), peso, altura, notas }.
+* La edad, la fecha y la llave NO vienen del formulario: las pone el servicio (con la API, el servidor).
+* Responde { success: true, id, llave } o { success: false, codigo, message, campo? }.
+*/
 export async function crearConsulta(consulta) {
     if (USAR_API) {
         const respuesta = await fetch(`${URL_API}/consultas`, {
@@ -334,22 +195,47 @@ export async function crearConsulta(consulta) {
 
     const medico = await obtenerMedicoActual();
     if (!medico) return sinSesion();
-    if (!await atiendeEnConsultorio(consulta.pacienteId, medico.consultorioId)) return sinPermiso();
 
+    const pacienteId = Number(consulta.pacienteId);
+    if (!await atiendeEnConsultorio(pacienteId, medico.consultorioId)) return sinPermiso();
+
+    // Mismas validaciones que hará el servidor (el formulario se puede saltar)
+    const peso = Number(consulta.peso);
+    if (!(peso >= PESO.min && peso <= PESO.max)) return datoInvalido('peso', `El peso debe estar entre ${PESO.min} y ${PESO.max} kg.`);
+
+    const altura = Number(consulta.altura);
+    if (!(altura >= ALTURA.min && altura <= ALTURA.max)) return datoInvalido('altura', `La altura debe estar entre ${ALTURA.min} y ${ALTURA.max} cm.`);
+
+    let enfermedadId = null;
+    if (consulta.enfermedadId != null && consulta.enfermedadId !== '') {
+        enfermedadId = Number(consulta.enfermedadId);
+        const existe = (await obtenerEnfermedades()).some(e => e.id === enfermedadId);
+        if (!existe) return datoInvalido('enfermedad', 'Elige una enfermedad del catálogo.');
+    }
+
+    const paciente = await obtenerPaciente(pacienteId);
     const consultas = await cargarJSON();
+
+    // La llave debe ser única en toda la tabla
+    const usadas = new Set(consultas.map(c => c.llave));
+    let llave;
+    do { llave = generarLlave(); } while (usadas.has(llave));
 
     const nueva = {
         id: Math.max(0, ...consultas.map(c => c.id)) + 1,
-        fecha: fechaHoraLocal(),
-        ...consulta,
-        pacienteId: Number(consulta.pacienteId),
+        pacienteId,
         medicoId: medico.id,                           // siempre el de la sesión, aunque el formulario enviara otro
-        consultorioId: medico.consultorioId,
-        sintomas: consulta.sintomas ?? []
+        enfermedadId,
+        edad: calcularEdad(paciente?.fechaNacimiento), // edad del paciente el día de la consulta
+        peso,
+        altura,
+        fecha: fechaHoraLocal(),
+        llave,
+        notas: String(consulta.notas ?? '').trim()
     };
 
     consultas.push(nueva);
-    registrarAuditoria('crear_consulta', { medicoId: medico.id, pacienteId: nueva.pacienteId, consultaId: nueva.id });
+    registrarAuditoria('crear_consulta', { medicoId: medico.id, pacienteId, consultaId: nueva.id });
 
-    return { success: true, id: nueva.id };
+    return { success: true, id: nueva.id, llave };
 }

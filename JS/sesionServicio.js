@@ -15,6 +15,7 @@ const esperar = (ms) => new Promise(resolver => setTimeout(resolver, ms));
 
 // Solo lo que la aplicación necesita saber del médico (nunca el correo).
 // consultorioId decide qué pacientes e historiales ve sin pedir permiso.
+
 const publico = ({ id, nombre, apellidos, consultorioId }) => ({ id, nombre, apellidos, consultorioId });
 
 /** Inicia sesión. Responde { success: true, medico } o { success: false, message }. */

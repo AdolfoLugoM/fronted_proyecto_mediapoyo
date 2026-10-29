@@ -79,12 +79,12 @@ function bloquear(estado) {
 /** Abre el modal con los datos de ese paciente (lo llama el lápiz de la tabla). */
 export function abrirEdicion(paciente) {
     if (!paciente || !modal) return;
-
+    
     pacienteEditable = paciente;
     focoAnterior = document.activeElement;
     llenarFormulario(paciente);
     campoNacimiento.max = hoyLocal();          // no se aceptan fechas futuras
-
+    
     modal.classList.add('activo');
     formulario.elements.nombre?.focus();
 }
@@ -114,25 +114,25 @@ campoCurp?.addEventListener('input', () => {
 formulario?.addEventListener('submit', async (evento) => {
     evento.preventDefault();
     if (guardando || !pacienteEditable) return;
-
+    
     // Quita espacios sobrantes antes de validar, para que "required" detecte campos con solo espacios
     formulario.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], textarea')
         .forEach(campo => { campo.value = campo.value.trim(); });
-
+    
     if (!formulario.reportValidity()) return;
-
+    
     const cambios = obtenerCambios(pacienteEditable, leerFormulario());
     if (Object.keys(cambios).length === 0) {
         mostrarAviso('No hay cambios que guardar.', 'exito');
         cerrarModal();
         return;
     }
-
+    
     bloquear(true);
-
+    
     try {
         const resultado = await actualizarPaciente(pacienteEditable.id, cambios);
-
+        
         if (!resultado.success) {
             mostrarAviso(resultado.message ?? 'No se pudieron guardar los cambios.', 'error');
             if (resultado.codigo === 'CURP_DUPLICADA') {
@@ -142,9 +142,9 @@ formulario?.addEventListener('submit', async (evento) => {
             }
             return;
         }
-
+        
         document.dispatchEvent(new CustomEvent('paciente-actualizado', { detail: resultado.paciente }));
-
+        
         bloquear(false);
         cerrarModal();
         mostrarAviso('Datos del paciente actualizados.', 'exito');

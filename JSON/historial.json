@@ -1,161 +1,212 @@
 {
     "meta": {
         "simulado": true,
-        "descripcion": "Historial de consultas ficticio para pruebas. Cada consulta pertenece al consultorio donde se atendió (consultorioId). Ya no hay llaves por consulta: el acceso se decide por consultorio, código del paciente o emergencia."
+        "descripcion": "Consultas ficticias para pruebas (tabla Consultas). enfermedadId puede ser null (revisión sin diagnóstico). peso en kg y altura en cm. Sin la llave, solo el médico que hizo la consulta la puede ver; la llave se le entrega al paciente."
     },
     "consultas": [
         {
             "id": 1,
             "pacienteId": 6,
             "medicoId": 2,
-            "consultorioId": 2,
+            "enfermedadId": 10,
+            "edad": 67,
+            "peso": 79.5,
+            "altura": 168,
             "fecha": "2026-01-20T10:30:00",
-            "sintomas": [36, 21],
-            "observaciones": "Episodios ocasionales desde hace dos semanas. Se solicita electrocardiograma."
+            "llave": "K7P2Q9XM",
+            "notas": "Episodios ocasionales desde hace dos semanas. Se solicita electrocardiograma."
         },
         {
             "id": 2,
             "pacienteId": 4,
             "medicoId": 3,
-            "consultorioId": 3,
+            "enfermedadId": 1,
+            "edad": 29,
+            "peso": 68.0,
+            "altura": 170,
             "fecha": "2026-02-12T17:20:00",
-            "sintomas": [25, 26, 1],
-            "observaciones": "Malestar posterior a un viaje. Se indica reposo e hidratación."
+            "llave": "R4TW8NZC",
+            "notas": "Malestar posterior a un viaje. Se indica reposo e hidratación."
         },
         {
             "id": 3,
             "pacienteId": 1,
             "medicoId": 1,
-            "consultorioId": 1,
+            "enfermedadId": 3,
+            "edad": 39,
+            "peso": 61.5,
+            "altura": 162,
             "fecha": "2026-03-10T09:30:00",
-            "sintomas": [1, 8, 10],
-            "observaciones": "Cuadro de dos días de evolución. Se indica reposo e hidratación."
+            "llave": "H3DF6VLB",
+            "notas": "Cuadro de dos días de evolución. Se indica reposo e hidratación."
         },
         {
             "id": 4,
             "pacienteId": 12,
             "medicoId": 4,
-            "consultorioId": 1,
+            "enfermedadId": null,
+            "edad": 26,
+            "peso": 77.0,
+            "altura": 180,
             "fecha": "2026-03-30T14:00:00",
-            "sintomas": [],
-            "observaciones": "Revisión de rutina, sin molestias. Signos vitales dentro de lo normal."
+            "llave": "M9XC2KQT",
+            "notas": "Revisión de rutina, sin molestias. Signos vitales dentro de lo normal."
         },
         {
             "id": 5,
             "pacienteId": 6,
             "medicoId": 2,
-            "consultorioId": 2,
+            "enfermedadId": 11,
+            "edad": 67,
+            "peso": 79.5,
+            "altura": 168,
             "fecha": "2026-04-14T10:30:00",
-            "sintomas": [38, 9],
-            "observaciones": "Se refiere a valoración con especialista."
+            "llave": "Z6NB4RWP",
+            "notas": "Se refiere a valoración con especialista."
         },
         {
             "id": 6,
             "pacienteId": 13,
             "medicoId": 3,
-            "consultorioId": 3,
+            "enfermedadId": 12,
+            "edad": 55,
+            "peso": 85.5,
+            "altura": 166,
             "fecha": "2026-05-05T11:30:00",
-            "sintomas": [39, 40],
-            "observaciones": "Se solicitan estudios de laboratorio."
+            "llave": "T2LM7HDS",
+            "notas": "Se solicitan estudios de laboratorio."
         },
         {
             "id": 7,
             "pacienteId": 1,
             "medicoId": 1,
-            "consultorioId": 1,
+            "enfermedadId": 9,
+            "edad": 39,
+            "peso": 61.5,
+            "altura": 162,
             "fecha": "2026-05-22T11:00:00",
-            "sintomas": [20, 21],
-            "observaciones": "Cefalea desde hace una semana. Se pide control de presión arterial en la próxima visita."
+            "llave": "W8QF3GJA",
+            "notas": "Cefalea desde hace una semana. Se pide control de presión arterial en la próxima visita."
         },
         {
             "id": 8,
             "pacienteId": 2,
             "medicoId": 4,
-            "consultorioId": 1,
+            "enfermedadId": 5,
+            "edad": 37,
+            "peso": 82.0,
+            "altura": 175,
             "fecha": "2026-06-18T12:00:00",
-            "sintomas": [17, 14, 16],
-            "observaciones": "Inicio posterior a una comida. Se indica hidratación y dieta blanda."
+            "llave": "B5ZK9TRE",
+            "notas": "Inicio posterior a una comida. Se indica hidratación y dieta blanda."
         },
         {
             "id": 9,
             "pacienteId": 8,
             "medicoId": 1,
-            "consultorioId": 1,
+            "enfermedadId": 2,
+            "edad": 44,
+            "peso": 88.0,
+            "altura": 172,
             "fecha": "2026-07-07T13:10:00",
-            "sintomas": [8, 1, 2],
-            "observaciones": "Tres días de evolución. Se indica reposo y revaloración si persiste."
+            "llave": "P7VH2MXN",
+            "notas": "Tres días de evolución. Se indica reposo y revaloración si persiste."
         },
         {
             "id": 10,
             "pacienteId": 1,
             "medicoId": 4,
-            "consultorioId": 1,
+            "enfermedadId": 7,
+            "edad": 39,
+            "peso": 61.5,
+            "altura": 162,
             "fecha": "2026-08-04T16:15:00",
-            "sintomas": [11, 12, 30],
-            "observaciones": "Síntomas que se repiten cada temporada."
+            "llave": "E3RJ6WQC",
+            "notas": "Síntomas que se repiten cada temporada."
         },
         {
             "id": 11,
             "pacienteId": 10,
             "medicoId": 3,
-            "consultorioId": 3,
+            "enfermedadId": 8,
+            "edad": 47,
+            "peso": 74.5,
+            "altura": 169,
             "fecha": "2026-08-25T15:40:00",
-            "sintomas": [19, 17],
-            "observaciones": "Molestias después de comer. Se recomienda cambiar horarios y tipo de comidas."
+            "llave": "N4GT8BZL",
+            "notas": "Molestias después de comer. Se recomienda cambiar horarios y tipo de comidas."
         },
         {
             "id": 12,
             "pacienteId": 2,
             "medicoId": 1,
-            "consultorioId": 1,
+            "enfermedadId": 17,
+            "edad": 37,
+            "peso": 82.0,
+            "altura": 175,
             "fecha": "2026-09-09T08:45:00",
-            "sintomas": [3, 5],
-            "observaciones": "Cansancio de varias semanas. Se piden estudios de laboratorio."
+            "llave": "C9WP5KHD",
+            "notas": "Cansancio de varias semanas. Se piden estudios de laboratorio."
         },
         {
             "id": 13,
             "pacienteId": 6,
             "medicoId": 3,
-            "consultorioId": 3,
+            "enfermedadId": 13,
+            "edad": 67,
+            "peso": 79.5,
+            "altura": 168,
             "fecha": "2026-09-29T09:00:00",
-            "sintomas": [26, 28],
-            "observaciones": "Rigidez matutina en rodillas y manos."
+            "llave": "S6MX3NRV",
+            "notas": "Rigidez matutina en rodillas y manos."
         },
         {
             "id": 14,
             "pacienteId": 1,
             "medicoId": 1,
-            "consultorioId": 1,
+            "enfermedadId": 14,
+            "edad": 40,
+            "peso": 61.5,
+            "altura": 162,
             "fecha": "2026-10-06T10:00:00",
-            "sintomas": [27, 28],
-            "observaciones": "Dolor lumbar tras esfuerzo físico. Se recomienda reposo relativo."
+            "llave": "J2HZ7QTF",
+            "notas": "Dolor lumbar tras esfuerzo físico. Se recomienda reposo relativo."
         },
         {
             "id": 15,
             "pacienteId": 9,
             "medicoId": 4,
-            "consultorioId": 1,
+            "enfermedadId": 15,
+            "edad": 42,
+            "peso": 64.0,
+            "altura": 158,
             "fecha": "2026-10-14T12:20:00",
-            "sintomas": [35, 1],
-            "observaciones": "Dos días de evolución. Se programa control."
+            "llave": "L8BD4XPW",
+            "notas": "Dos días de evolución. Se programa control."
         },
         {
             "id": 16,
             "pacienteId": 1,
             "medicoId": 2,
-            "consultorioId": 2,
+            "enfermedadId": 10,
+            "edad": 39,
+            "peso": 61.5,
+            "altura": 162,
             "fecha": "2026-07-15T09:15:00",
-            "sintomas": [36, 37],
-            "observaciones": "Palpitaciones al subir escaleras. Electrocardiograma normal; se indica holter de 24 horas."
+            "llave": "Q5KR9MGU",
+            "notas": "Palpitaciones al subir escaleras. Electrocardiograma normal; se indica holter de 24 horas."
         },
         {
             "id": 17,
             "pacienteId": 6,
             "medicoId": 4,
-            "consultorioId": 1,
+            "enfermedadId": 9,
+            "edad": 67,
+            "peso": 79.5,
+            "altura": 168,
             "fecha": "2026-10-02T11:45:00",
-            "sintomas": [20, 21],
-            "observaciones": "Control de presión arterial: 150/95. Se ajusta tratamiento y se cita en dos semanas."
+            "llave": "F3TN6ZWH",
+            "notas": "Control de presión arterial: 150/95. Se ajusta tratamiento y se cita en dos semanas."
         }
     ]
 }

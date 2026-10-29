@@ -33,7 +33,7 @@ function aplicarEstiloBase() {
 // Pastel: qué parte de los casos del top 5 aporta cada enfermedad
 function dibujarPastel(top) {
     const colorBorde = getComputedStyle(document.documentElement).getPropertyValue('--color-fondo').trim();
-
+    
     new Chart(lienzoPastel, {
         type: 'pie',
         data: {
@@ -117,22 +117,22 @@ function dibujarLineas(top) {
 
 async function iniciar() {
     if (!lienzoLinea || !lienzoBarras || !lienzoPastel) return;
-
+    
     if (typeof Chart === 'undefined') {
         mostrarError('No se pudo cargar Chart.js. Revisa tu conexión o la etiqueta <script> del index.');
         return;
     }
-
+    
     aplicarEstiloBase();
-
+    
     try {
         const top = await obtenerTopEnfermedades({ limite: LIMITE });
-
+        
         if (top.enfermedades.length === 0) {
             mostrarError('No hay enfermedades registradas para mostrar.');
             return;
         }
-
+        
         dibujarPastel(top);
         dibujarBarras(top);
         dibujarLineas(top);

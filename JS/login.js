@@ -15,24 +15,24 @@ function mostrarError(texto) {
 
 formulario?.addEventListener('submit', async (evento) => {
     evento.preventDefault();
-
+    
     if (mensajeError) mensajeError.hidden = true;
     boton.disabled = true;                     // evita enviar dos veces con doble clic
-
+    
     try {
         const resultado = await iniciarSesion(campoCorreo.value, campoClave.value);
-
+        
         if (resultado.success) {
             window.location.href = 'index.html';
             return;
         }
-
+        
         mostrarError(resultado.message ?? 'No se pudo iniciar sesión.');
     } catch (error) {
         console.error('Error al iniciar sesión:', error);
         mostrarError('Ocurrió un problema al conectar con el servidor.');
     }
-
+    
     boton.disabled = false;
     campoClave.value = '';
     campoClave.focus();
