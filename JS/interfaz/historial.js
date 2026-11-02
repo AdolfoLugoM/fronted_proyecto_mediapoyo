@@ -8,7 +8,7 @@
 // Desde aquí también se puede crear una consulta nueva para ese mismo paciente.
 
 import { mostrarVista, marcarBoton } from './vistas.js';
-import { obtenerHistorial, desbloquearConsulta, buscarConsultaPorFolio, enviarLlaveAlPaciente } from '../servicios/consultasServicio.js';
+import { obtenerHistorial, desbloquearConsulta } from '../servicios/consultasServicio.js';
 import { abrirConsulta } from './consulta.js';
 import { mostrarAviso } from './avisos.js';
 import { calcularEdad, formatearFechaHora } from '../utilidades.js';
@@ -101,7 +101,6 @@ function dibujarDetalle(cuerpo, detalle) {
 
 function crearTarjeta(consulta) {
     const tarjeta = crear('article', 'consulta-historial');
-    tarjeta.dataset.folio = folio(consulta.id);
     if (!consulta.propia) tarjeta.classList.add('consulta-historial--externa');   // de otro médico, desbloqueada
 
     const cabecera = crear('div', 'consulta-cabecera');
@@ -133,7 +132,13 @@ function ocultarBanner() {
     banner.replaceChildren();
 }
 
-function crearFormularioLlave(consultaId = null) {
+// Campo para escribir la llave de una consulta con otro médico
+function dibujarOpciones() {
+    banner.hidden = false;
+
+    const texto = crear('p', '',
+        '¿El paciente se atendió con otro médico? Escribe la llave que recibió en esa consulta para verla aquí.');
+
     const formulario = crear('form', 'formulario-codigo formulario-codigo--llave');
     formulario.noValidate = true;
 
@@ -149,6 +154,8 @@ function crearFormularioLlave(consultaId = null) {
     formulario.append(campo, btnDesbloquear);
 
     const mensaje = crearMensaje();
+
+    banner.replaceChildren(texto, formulario, mensaje);
 
     // Siempre en mayúsculas mientras se escribe
     campo.addEventListener('input', () => { campo.value = campo.value.toUpperCase(); });
@@ -167,7 +174,7 @@ function crearFormularioLlave(consultaId = null) {
         mensaje.hidden = true;
 
         try {
-            const resultado = await desbloquearConsulta(pacienteActual.id, campo.value, consultaId);
+            const resultado = await desbloquearConsulta(pacienteActual.id, campo.value);
 
             if (resultado.success) {
                 mostrarAviso(resultado.yaVisible ? 'Esa consulta ya aparece en la lista.' : 'Consulta desbloqueada.', 'exito');
@@ -185,179 +192,6 @@ function crearFormularioLlave(consultaId = null) {
         campo.disabled = false;
         campo.select();
     });
-
-    return { formulario, campo, mensaje };
-}
-
-function crearConsultaBloqueada(consulta) {
-    const tarjeta = crear('div', 'consulta-bloqueada');
-
-    const fecha = crear('time', 'consulta-fecha', formatearFechaHora(consulta.fecha));
-    fecha.dateTime = consulta.fecha;
-
-    const datos = crear('div', 'consulta-cabecera');
-    const izquierda = crear('div');
-    izquierda.append(fecha, crear('span', 'consulta-medico', `Atendió: ${consulta.medico.nombre}`));
-    datos.append(izquierda, crear('span', 'consulta-folio', `Folio ${folio(consulta.id)} · Bloqueada`));
-
-    const aviso = crear('p', '', 'Pide al paciente la llave que recibió en esta consulta para ver su contenido. ' +
-        'Si no la tiene, envíasela a su teléfono y que te la dicte.');
-
-    const filaEnvio = crear('div', 'envio-llave');
-    const btnEnviar = crearBoton('Enviar llave al paciente');
-    const estadoEnvio = crear('span', 'envio-llave-estado');
-    filaEnvio.append(btnEnviar, estadoEnvio);
-
-    const { formulario, campo, mensaje } = crearFormularioLlave(consulta.id);
-
-    let temporizador = null;
-    function esperarReenvio(segundos) {
-        clearInterval(temporizador);
-        let restantes = segundos;
-        btnEnviar.disabled = true;
-        btnEnviar.textContent = `Reenviar (${restantes} s)`;
-
-        temporizador = setInterval(() => {
-            restantes--;
-            if (restantes > 0 && tarjeta.isConnected) {
-                btnEnviar.textContent = `Reenviar (${restantes} s)`;
-                return;
-            }
-            clearInterval(temporizador);
-            btnEnviar.disabled = false;
-            btnEnviar.textContent = 'Reenviar llave';
-        }, 1000);
-    }
-
-    btnEnviar.addEventListener('click', async () => {
-        btnEnviar.disabled = true;
-        estadoEnvio.textContent = 'Enviando...';
-
-        try {
-            const resultado = await enviarLlaveAlPaciente(pacienteActual.id, consulta.id);
-
-            if (resultado.success) {
-                estadoEnvio.textContent = `Enviada por SMS al ${resultado.telefono}. Pide al paciente que te la dicte.`;
-                mostrarAviso('Llave enviada al paciente.', 'exito');
-                esperarReenvio(60);
-                campo.focus();
-                return;
-            }
-
-            estadoEnvio.textContent = resultado.message ?? 'No se pudo enviar la llave.';
-            if (resultado.espera) { esperarReenvio(resultado.espera); return; }
-        } catch (error) {
-            console.error('Error al enviar la llave:', error);
-            estadoEnvio.textContent = 'Ocurrió un problema al conectar con el servidor.';
-        }
-
-        btnEnviar.disabled = false;
-    });
-
-    tarjeta.append(datos, aviso, filaEnvio, formulario, mensaje);
-    return { tarjeta, campo };
-}
-
-function crearBuscadorFolio() {
-    const contenedor = crear('form', 'buscador-folio');
-    contenedor.noValidate = true;
-
-    const etiqueta = crear('label', '', 'Buscar por folio');
-    etiqueta.htmlFor = 'buscar-folio';
-
-    const campo = crear('input');
-    campo.type = 'search';
-    campo.id = 'buscar-folio';
-    campo.inputMode = 'numeric';
-    campo.autocomplete = 'off';
-    campo.maxLength = 4;
-    campo.placeholder = 'Ej. 0014';
-
-    const btnBuscar = crearBoton('Buscar', '', 'submit');
-
-    const resultado = crear('div', 'buscador-folio-resultado');
-    let numeroBusqueda = 0;
-
-    const mostrarTexto = (texto) => resultado.replaceChildren(crear('p', 'buscador-folio-vacio', texto));
-
-    function filtrarLista(buscado) {
-        let visibles = 0;
-        let exacta = false;
-
-        lista.querySelectorAll('.consulta-historial').forEach(tarjeta => {
-            const coincide = tarjeta.dataset.folio.includes(buscado);
-            tarjeta.hidden = !coincide;
-            if (coincide) visibles++;
-            if (buscado && Number(tarjeta.dataset.folio) === Number(buscado)) exacta = true;
-        });
-
-        return { visibles, exacta };
-    }
-
-    async function buscarCompleto() {
-        const buscado = campo.value;
-        if (!buscado || Number(buscado) === 0) return;
-
-        const { exacta } = filtrarLista(buscado);
-        if (exacta) return;
-
-        const miBusqueda = ++numeroBusqueda;
-        btnBuscar.disabled = true;
-        mostrarTexto('Buscando...');
-
-        try {
-            const respuesta = await buscarConsultaPorFolio(pacienteActual.id, buscado);
-            if (miBusqueda !== numeroBusqueda) return;
-
-            if (!respuesta.success) {
-                mostrarTexto(respuesta.message ?? 'No se pudo buscar el folio.');
-            } else if (respuesta.consulta.visible) {
-                mostrarTexto('Esa consulta ya está en tu lista.');
-            } else {
-                const { tarjeta, campo: campoLlave } = crearConsultaBloqueada(respuesta.consulta);
-                resultado.replaceChildren(tarjeta);
-                campoLlave.focus();
-            }
-        } catch (error) {
-            if (miBusqueda !== numeroBusqueda) return;
-            console.error('Error al buscar el folio:', error);
-            mostrarTexto('Ocurrió un problema al conectar con el servidor.');
-        } finally {
-            if (miBusqueda === numeroBusqueda) btnBuscar.disabled = false;
-        }
-    }
-
-    campo.addEventListener('input', () => {
-        campo.value = campo.value.replace(/\D/g, '');
-        numeroBusqueda++;
-        btnBuscar.disabled = false;
-        resultado.replaceChildren();
-
-        const buscado = campo.value;
-        const { visibles } = filtrarLista(buscado);
-
-        if (buscado.length === 4) buscarCompleto();
-        else if (buscado && visibles === 0) mostrarTexto('Ninguna consulta de tu lista tiene ese folio. Escribe el folio completo o pulsa Buscar.');
-    });
-
-    contenedor.addEventListener('submit', (evento) => {
-        evento.preventDefault();
-        buscarCompleto();
-    });
-
-    contenedor.append(etiqueta, campo, btnBuscar, resultado);
-    return contenedor;
-}
-
-function dibujarOpciones() {
-    banner.hidden = false;
-
-    const texto = crear('p', '',
-        '¿El paciente se atendió con otro médico? Escribe la llave que recibió en esa consulta para verla aquí.');
-
-    const { formulario, mensaje } = crearFormularioLlave();
-
-    banner.replaceChildren(texto, formulario, mensaje, crearBuscadorFolio());
 }
 
 // ----- Historial completo -----
