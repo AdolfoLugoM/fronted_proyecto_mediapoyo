@@ -20,16 +20,16 @@ async function leerJSON(url, propiedad) {
 /** Devuelve la lista de enfermedades: [ { id, nombre, descripcion } ], ordenada por nombre. */
 export async function obtenerEnfermedades() {
     if (cacheEnfermedades) return cacheEnfermedades;
-
+    
     if (USAR_API) {
         const respuesta = await fetch(URL_API);
         if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
         cacheEnfermedades = await respuesta.json();
         return cacheEnfermedades;
     }
-
+    
     await esperar(150);                       // simula la demora de una red real
-
+    
     cacheEnfermedades = (await leerJSON(URL_JSON, 'enfermedades'))
         .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
     return cacheEnfermedades;
@@ -44,30 +44,30 @@ export async function obtenerEnfermedades() {
 */
 export async function sugerirEnfermedades(sintomaIds, { limite = 5 } = {}) {
     if (sintomaIds.length === 0) return [];
-
+    
     if (USAR_API) {
         const parametros = new URLSearchParams({ sintomas: sintomaIds.join(','), limite });
         const respuesta = await fetch(`${URL_API}/sugerencias?${parametros}`);
         if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
         return respuesta.json();
     }
-
+    
     const [enfermedades, detalle] = await Promise.all([
         obtenerEnfermedades(),
         cacheDetalle ?? leerJSON(URL_JSON_DETALLE, 'detalle')
     ]);
     cacheDetalle = detalle;
-
+    
     const buscados = new Set(sintomaIds);
     const conteo = new Map();                 // enfermedadId -> { coincidencias, total }
-
+    
     for (const { enfermedadId, sintomaId } of detalle) {
         const fila = conteo.get(enfermedadId) ?? { coincidencias: 0, total: 0 };
         fila.total += 1;
         if (buscados.has(sintomaId)) fila.coincidencias += 1;
         conteo.set(enfermedadId, fila);
     }
-
+    
     return enfermedades
         .map(e => ({ id: e.id, nombre: e.nombre, ...(conteo.get(e.id) ?? { coincidencias: 0, total: 0 }) }))
         .filter(e => e.coincidencias > 0)
