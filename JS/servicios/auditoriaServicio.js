@@ -14,7 +14,7 @@ export function fechaHoraLocal(fecha = new Date()) {
 
 /**
 * Registra una acción. Los nombres de acción son los mismos del CHECK de la tabla "auditoria":
-* abrir_historial, crear_consulta, desbloquear_consulta, llave_incorrecta,
+* abrir_historial, crear_consulta, buscar_folio, enviar_llave, desbloquear_consulta, llave_incorrecta,
 * registrar_paciente, vincular_paciente.
 */
 export function registrarAuditoria(accion, datos = {}) {

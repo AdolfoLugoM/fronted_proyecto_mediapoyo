@@ -32,6 +32,8 @@ const ALTURA = { min: 30, max: 250 };         // cm
 // (viven aquí hasta recargar la página).
 let cacheConsultas = null;
 const desbloqueos = new Map();                // "medico-paciente" -> Set con los ids de las consultas desbloqueadas con su llave
+const ultimosEnvios = new Map();
+const ESPERA_REENVIO_MS = 60 * 1000;
 
 async function cargarJSON() {
     if (cacheConsultas) return cacheConsultas;
@@ -126,6 +128,81 @@ export async function obtenerHistorial(pacienteId) {
     };
 }
 
+export async function buscarConsultaPorFolio(pacienteId, folioEscrito) {
+    if (USAR_API) {
+        const respuesta = await fetch(`${URL_API}/pacientes/${encodeURIComponent(pacienteId)}/consultas/folio/${encodeURIComponent(folioEscrito)}`);
+        return respuesta.json();
+    }
+
+    await esperar(200);
+
+    const id = Number(pacienteId);
+    const medico = await obtenerMedicoActual();
+    if (!medico) return sinSesion();
+    if (!await atiendeEnConsultorio(id, medico.consultorioId)) return sinPermiso();
+
+    const folioBuscado = Number(String(folioEscrito ?? '').replace(/\D/g, ''));
+    if (!folioBuscado) return datoInvalido('folio', 'Escribe el número de folio.');
+
+    const consulta = (await cargarJSON()).find(c => c.pacienteId === id && c.id === folioBuscado);
+    if (!consulta) {
+        return { success: false, codigo: 'NO_ENCONTRADA', message: 'Este paciente no tiene ninguna consulta con ese folio.' };
+    }
+
+    const desbloqueadas = desbloqueos.get(clave(medico.id, id)) ?? new Set();
+    const medicoConsulta = (await obtenerMedicos()).find(m => m.id === consulta.medicoId);
+    registrarAuditoria('buscar_folio', { medicoId: medico.id, pacienteId: id, consultaId: consulta.id });
+
+    return {
+        success: true,
+        consulta: {
+            id: consulta.id,
+            fecha: consulta.fecha,
+            medico: { id: consulta.medicoId, nombre: medicoConsulta ? `${medicoConsulta.nombre} ${medicoConsulta.apellidos}` : 'Médico no identificado' },
+            visible: consulta.medicoId === medico.id || desbloqueadas.has(consulta.id)
+        }
+    };
+}
+
+export async function enviarLlaveAlPaciente(pacienteId, consultaId) {
+    if (USAR_API) {
+        const respuesta = await fetch(`${URL_API}/pacientes/${encodeURIComponent(pacienteId)}/consultas/${encodeURIComponent(consultaId)}/enviar-llave`, {
+            method: 'POST'
+        });
+        return respuesta.json();
+    }
+
+    await esperar(400);
+
+    const id = Number(pacienteId);
+    const medico = await obtenerMedicoActual();
+    if (!medico) return sinSesion();
+    if (!await atiendeEnConsultorio(id, medico.consultorioId)) return sinPermiso();
+
+    const consulta = (await cargarJSON()).find(c => c.pacienteId === id && c.id === Number(consultaId));
+    if (!consulta) {
+        return { success: false, codigo: 'NO_ENCONTRADA', message: 'Este paciente no tiene ninguna consulta con ese folio.' };
+    }
+
+    const paciente = await obtenerPaciente(id);
+    const telefono = String(paciente?.telefono ?? '').replace(/\D/g, '');
+    if (telefono.length < 10) {
+        return { success: false, codigo: 'SIN_TELEFONO', message: 'El paciente no tiene un teléfono registrado. Actualiza sus datos para enviarle la llave.' };
+    }
+
+    const ultimo = ultimosEnvios.get(consulta.id) ?? 0;
+    const espera = Math.ceil((ultimo + ESPERA_REENVIO_MS - Date.now()) / 1000);
+    if (espera > 0) {
+        return { success: false, codigo: 'ESPERA_REENVIO', espera, message: `Ya se envió la llave. Podrás reenviarla en ${espera} s.` };
+    }
+    ultimosEnvios.set(consulta.id, Date.now());
+
+    console.info(`[SMS simulado] Para ${paciente.telefono}: MediApoyo. La llave de tu consulta con folio ${String(consulta.id).padStart(4, '0')} es ${consulta.llave}. Dásela solo al médico que te atiende.`);
+    registrarAuditoria('enviar_llave', { medicoId: medico.id, pacienteId: id, consultaId: consulta.id });
+
+    return { success: true, telefono: `••• ••• ${telefono.slice(-4)}` };
+}
+
 /**
 * Desbloquea UNA consulta de otro médico con la llave que el paciente recibió en ella.
 * Busca entre las consultas de ese paciente la que tenga esa llave.
@@ -133,12 +210,12 @@ export async function obtenerHistorial(pacienteId) {
 *   yaVisible: true si esa consulta ya se podía ver (la hizo él, o ya la había desbloqueado)
 * El desbloqueo dura lo que la sesión (en la simulación, hasta recargar la página).
 */
-export async function desbloquearConsulta(pacienteId, llaveEscrita) {
+export async function desbloquearConsulta(pacienteId, llaveEscrita, consultaId = null) {
     if (USAR_API) {
         const respuesta = await fetch(`${URL_API}/pacientes/${encodeURIComponent(pacienteId)}/desbloquear`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ llave: llaveEscrita })        // en el cuerpo, nunca en la URL
+            body: JSON.stringify({ llave: llaveEscrita, consultaId })   // en el cuerpo, nunca en la URL
         });
         return respuesta.json();
     }
@@ -155,11 +232,15 @@ export async function desbloquearConsulta(pacienteId, llaveEscrita) {
         return { success: false, codigo: 'LLAVE_INVALIDA', message: `La llave tiene ${LARGO_LLAVE} caracteres.` };
     }
 
-    const consulta = (await cargarJSON()).find(c => c.pacienteId === id && normalizarLlave(c.llave) === buscada);
+    const consulta = (await cargarJSON()).find(c => c.pacienteId === id && normalizarLlave(c.llave) === buscada
+        && (consultaId == null || c.id === Number(consultaId)));
 
     if (!consulta) {
         registrarAuditoria('llave_incorrecta', { medicoId: medico.id, pacienteId: id });
-        return { success: false, codigo: 'LLAVE_INCORRECTA', message: 'Ninguna consulta de este paciente tiene esa llave.' };
+        const message = consultaId == null
+            ? 'Ninguna consulta de este paciente tiene esa llave.'
+            : 'Esa llave no corresponde a esta consulta.';
+        return { success: false, codigo: 'LLAVE_INCORRECTA', message };
     }
 
     // Si la hizo él mismo o ya la había desbloqueado, no hay nada nuevo que desbloquear

@@ -238,6 +238,74 @@ HISTORIAL DE CONSULTAS (#vista-historial) y acciones de la tabla de resultados
     letter-spacing: normal;
 }
 
+.buscador-folio {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--color-borde);
+}
+
+.buscador-folio > label {
+    font-size: 0.9rem;
+}
+
+.buscador-folio > input {
+    width: 12ch;
+    padding: 8px 10px;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 6px;
+    font-family: ui-monospace, Consolas, 'Courier New', monospace;
+    font-size: 1rem;
+    color: var(--color-texto);
+}
+
+.buscador-folio > input:focus {
+    outline: 2px solid var(--color-acento);
+    border-color: transparent;
+}
+
+.buscador-folio-resultado {
+    flex-basis: 100%;
+}
+
+.buscador-folio-resultado:empty {
+    display: none;
+}
+
+.banner-acceso p.buscador-folio-vacio {
+    font-size: 0.85rem;
+    color: var(--color-placeholder);
+}
+
+.consulta-bloqueada {
+    display: grid;
+    gap: 10px;
+    padding: 12px 16px;
+    background-color: var(--color-superficie);
+    border: 1px dashed var(--color-borde);
+    border-left: 4px solid var(--color-placeholder);
+    border-radius: 10px;
+}
+
+.envio-llave {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+}
+
+.envio-llave-estado {
+    font-size: 0.85rem;
+    color: var(--color-placeholder);
+}
+
+.consulta-historial[hidden] {
+    display: none;
+}
+
 .acceso-mensaje {
     font-size: 0.85rem;
     color: var(--color-error);
