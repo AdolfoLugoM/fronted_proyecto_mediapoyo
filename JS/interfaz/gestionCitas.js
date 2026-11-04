@@ -1,4 +1,4 @@
-// Gestión de citas: calendario (FullCalendar) con la agenda del consultorio del médico en sesión.
+// Gestión de citas: calendario (FullCalendar) con la agenda del médico en sesión.
 // FullCalendar se carga con un <script> clásico en index.html (antes de main.js).
 //
 // La misma ventana sirve para tres cosas:

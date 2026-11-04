@@ -9,8 +9,7 @@ const URL_JSON = 'JSON/medicos.json';     // ruta relativa a index.html y a logi
 const URL_API = '/api/medicos';
 
 // Lo único que un médico puede cambiar de su perfil desde la app.
-// La contraseña necesita su propio proceso (confirmando la contraseña actual),
-// y el consultorio no lo decide el médico.
+// La contraseña tiene su propio proceso (cambiarClave en sesionServicio.js).
 
 const CAMPOS_EDITABLES = ['nombre', 'apellidos'];
 

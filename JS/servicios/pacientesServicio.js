@@ -2,10 +2,10 @@
 // El resto de la app SOLO usa estas funciones: HOY leen un JSON y MAÑANA llaman a la API.
 // Para conectar la base de datos basta con poner USAR_API = true (y ajustar las URLs).
 //
-// Consultorios independientes: cada paciente es UN registro en toda la plataforma (CURP única),
-// pero cada consultorio solo encuentra a los pacientes que se atienden con él.
-// La lista de consultorios de cada paciente NUNCA sale de esta capa: el navegador no debe saber
-// en qué otros lugares se atiende alguien.
+// Cada paciente es UN registro en toda la plataforma (CURP única), pero cada médico solo encuentra
+// a SUS pacientes: los que registró o con los que ya se vinculó.
+// La lista de médicos de cada paciente NUNCA sale de esta capa: el navegador no debe saber
+// con qué otros médicos se atiende alguien.
 
 import { obtenerMedicoActual } from './sesionServicio.js';
 import { registrarAuditoria } from './auditoriaServicio.js';
@@ -14,7 +14,7 @@ const USAR_API = false;
 const URL_JSON = 'JSON/pacientes.json';     // ruta relativa a index.html
 const URL_API = '/api/pacientes';           // endpoint futuro (backend + base de datos)
 
-// Campos que se pueden cambiar al editar (la lista de consultorios nunca se toca desde aquí)
+// Campos que se pueden cambiar al editar (la lista de médicos nunca se toca desde aquí)
 const CAMPOS_EDITABLES = ['nombre', 'apellidos', 'curp', 'fechaNacimiento', 'sexo',
     'telefono', 'correo', 'tipoSangre', 'notas'];
 
@@ -40,15 +40,15 @@ function normalizar(texto) {
 
 const esperar = (ms) => new Promise(resolver => setTimeout(resolver, ms));
 
-// Lo que la pantalla puede ver de un paciente: todo menos la lista de sus consultorios
-function publico({ consultorios, ...paciente }) {
+// Lo que la pantalla puede ver de un paciente: todo menos la lista de sus médicos
+function publico({ medicos, ...paciente }) {
     return paciente;
 }
 
-const atiendeEn = (paciente, consultorioId) => (paciente.consultorios ?? []).includes(consultorioId);
+const esDe = (paciente, medicoId) => (paciente.medicos ?? []).includes(medicoId);
 
 /**
-* Busca pacientes por nombre, apellidos o CURP, solo entre los del consultorio del médico en sesión.
+* Busca pacientes por nombre, apellidos o CURP, solo entre los pacientes del médico en sesión.
 * Devuelve siempre la misma forma, venga del JSON o de la API:
 *   { total, pagina, porPagina, resultados: [ { id, nombre, apellidos, curp, ... } ] }
 */
@@ -67,7 +67,7 @@ export async function buscarPacientes(termino, { pagina = 1, porPagina = 10 } = 
     
     const buscado = normalizar(termino);
     const coincidencias = pacientes.filter(p =>
-        atiendeEn(p, medico.consultorioId) &&
+        esDe(p, medico.id) &&
         normalizar(`${p.nombre} ${p.apellidos} ${p.curp}`).includes(buscado)
     );
     
@@ -80,7 +80,7 @@ export async function buscarPacientes(termino, { pagina = 1, porPagina = 10 } = 
     };
 }
 
-/** Obtiene un paciente por su id (sin la lista de sus consultorios). */
+/** Obtiene un paciente por su id (sin la lista de sus médicos). */
 export async function obtenerPaciente(id) {
     if (USAR_API) {
         const respuesta = await fetch(`${URL_API}/${encodeURIComponent(id)}`);
@@ -95,23 +95,23 @@ export async function obtenerPaciente(id) {
 }
 
 /**
-* ¿El paciente se atiende en ese consultorio? Solo lo usan las otras capas de servicio
+* ¿El paciente es de ese médico? Solo lo usan las otras capas de servicio
 * (por ejemplo, para decidir si un médico puede abrir un historial). Con API, lo decide el servidor.
 */
-export async function atiendeEnConsultorio(pacienteId, consultorioId) {
+export async function esPacienteDelMedico(pacienteId, medicoId) {
     const paciente = (await cargarJSON()).find(p => p.id === Number(pacienteId));
-    return paciente ? atiendeEn(paciente, consultorioId) : false;
+    return paciente ? esDe(paciente, medicoId) : false;
 }
 
 /**
-* SOLO SIMULACIÓN (la usa citasServicio.js): el paciente con esa CURP, si se atiende en ese consultorio.
-* Si se atiende en otro lado responde null igual, para no revelar que existe.
+* SOLO SIMULACIÓN (la usa citasServicio.js): el paciente con esa CURP, si es de ese médico.
+* Si es de otro médico responde null igual, para no revelar que existe.
 * Con la API, el servidor resuelve la CURP al agendar la cita.
 */
-export async function buscarPacientePorCurp(curp, consultorioId) {
+export async function buscarPacientePorCurp(curp, medicoId) {
     const buscada = String(curp ?? '').trim().toUpperCase();
     const paciente = (await cargarJSON()).find(p => p.curp.toUpperCase() === buscada);
-    return paciente && atiendeEn(paciente, consultorioId) ? publico(paciente) : null;
+    return paciente && esDe(paciente, medicoId) ? publico(paciente) : null;
 }
 
 /**
@@ -129,11 +129,11 @@ export async function resumenPacientes(ids) {
 }
 
 /**
-* Registra un paciente en el consultorio del médico en sesión.
+* Registra un paciente para el médico en sesión.
 * - CURP nueva: crea el registro.
-* - CURP que ya existe en OTRO consultorio: no la duplica; solo vincula al paciente con este consultorio.
-*   El mensaje es el mismo que en un registro nuevo, para no revelar que se atiende en otro lugar.
-* - CURP que ya existe en ESTE consultorio: la rechaza (CURP_DUPLICADA).
+* - CURP que ya existe con OTRO médico: no la duplica; solo vincula al paciente con este médico.
+*   El mensaje es el mismo que en un registro nuevo, para no revelar que se atiende con otro médico.
+* - CURP que ya es de ESTE médico: la rechaza (CURP_DUPLICADA).
 * Siempre responde { success: true, paciente } o { success: false, codigo, message }.
 * Con la API real, el servidor debe volver a validar (y la CURP debe ser UNIQUE en la tabla).
 */
@@ -159,16 +159,16 @@ export async function crearPaciente(paciente) {
     const existente = pacientes.find(p => p.curp.toUpperCase() === curp);
     
     if (existente) {
-        if (atiendeEn(existente, medico.consultorioId)) {
+        if (esDe(existente, medico.id)) {
             return {
                 success: false,
                 codigo: 'CURP_DUPLICADA',
-                message: 'Este paciente ya está registrado en tu consultorio. Búscalo en la barra superior.'
+                message: 'Este paciente ya está entre tus pacientes. Búscalo en la barra superior.'
             };
         }
-        
-        // Se atiende en otro consultorio: se vincula sin crear otro registro y sin cambiar sus datos
-        existente.consultorios.push(medico.consultorioId);
+
+        // Se atiende con otro médico: se vincula sin crear otro registro y sin cambiar sus datos
+        existente.medicos.push(medico.id);
         registrarAuditoria('vincular_paciente', { medicoId: medico.id, pacienteId: existente.id });
         return { success: true, paciente: publico(existente) };
     }
@@ -177,16 +177,16 @@ export async function crearPaciente(paciente) {
         id: Math.max(0, ...pacientes.map(p => p.id)) + 1,
         ...paciente,
         curp,
-        consultorios: [medico.consultorioId]
+        medicos: [medico.id]
     };
-    pacientes.push(nuevo);                     // desde ahora también aparece en la búsqueda de este consultorio
+    pacientes.push(nuevo);                     // desde ahora también aparece en la búsqueda de este médico
     registrarAuditoria('registrar_paciente', { medicoId: medico.id, pacienteId: nuevo.id });
     return { success: true, paciente: publico(nuevo) };
 }
 
 /**
-* Actualiza los datos de un paciente del consultorio del médico en sesión.
-* Recibe SOLO los campos que cambiaron. La lista de consultorios nunca se puede tocar desde aquí.
+* Actualiza los datos de un paciente del médico en sesión.
+* Recibe SOLO los campos que cambiaron. La lista de médicos nunca se puede tocar desde aquí.
 * Responde { success: true, paciente } o { success: false, codigo, message }.
 * Con la API real, el servidor debe volver a validar todo (permisos, formato y CURP única).
 */
@@ -209,8 +209,8 @@ export async function actualizarPaciente(id, cambios) {
     
     const pacientes = await cargarJSON();
     const paciente = pacientes.find(p => p.id === Number(id));
-    if (!paciente || !atiendeEn(paciente, medico.consultorioId)) {
-        return { success: false, codigo: 'NO_ENCONTRADO', message: 'No se encontró a este paciente en tu consultorio.' };
+    if (!paciente || !esDe(paciente, medico.id)) {
+        return { success: false, codigo: 'NO_ENCONTRADO', message: 'No se encontró a este paciente entre tus pacientes.' };
     }
     
     // Solo se copian los campos permitidos (aunque manden otros, se ignoran)

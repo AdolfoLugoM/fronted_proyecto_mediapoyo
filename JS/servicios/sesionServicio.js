@@ -14,9 +14,8 @@ const CLAVE_ALMACEN = 'medicoSesionId';     // sessionStorage: cada pestaña tie
 const esperar = (ms) => new Promise(resolver => setTimeout(resolver, ms));
 
 // Solo lo que la aplicación necesita saber del médico (nunca la contraseña).
-// consultorioId decide qué pacientes e historiales ve sin pedir permiso.
 
-const publico = ({ id, nombre, apellidos, consultorioId }) => ({ id, nombre, apellidos, consultorioId });
+const publico = ({ id, nombre, apellidos }) => ({ id, nombre, apellidos });
 
 /** Inicia sesión. Responde { success: true, medico } o { success: false, message }. */
 export async function iniciarSesion(usuario, clave) {

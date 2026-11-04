@@ -13,7 +13,7 @@
 import { obtenerEnfermedades } from './enfermedadesServicio.js';
 import { obtenerMedicos } from './medicosServicio.js';
 import { obtenerMedicoActual } from './sesionServicio.js';
-import { obtenerPaciente, atiendeEnConsultorio } from './pacientesServicio.js';
+import { obtenerPaciente, esPacienteDelMedico } from './pacientesServicio.js';
 import { registrarAuditoria, fechaHoraLocal } from './auditoriaServicio.js';
 import { calcularEdad } from '../utilidades.js';
 
@@ -48,7 +48,7 @@ const clave = (medicoId, pacienteId) => `${medicoId}-${pacienteId}`;
 
 // Respuestas de error con la misma forma que dará la API
 const sinSesion = () => ({ success: false, codigo: 'SIN_SESION', message: 'Inicia sesión como médico para continuar.' });
-const sinPermiso = () => ({ success: false, codigo: 'SIN_PERMISO', message: 'Este paciente no está registrado en tu consultorio.' });
+const sinPermiso = () => ({ success: false, codigo: 'SIN_PERMISO', message: 'Este paciente no está entre tus pacientes.' });
 const datoInvalido = (campo, message) => ({ success: false, codigo: 'DATO_INVALIDO', campo, message });
 
 // ----- Llaves -----
@@ -84,7 +84,7 @@ export async function obtenerHistorial(pacienteId) {
     const id = Number(pacienteId);
     const medico = await obtenerMedicoActual();
     if (!medico) return sinSesion();
-    if (!await atiendeEnConsultorio(id, medico.consultorioId)) return sinPermiso();
+    if (!await esPacienteDelMedico(id, medico.id)) return sinPermiso();
 
     const [consultas, medicos, enfermedades] = await Promise.all([
         cargarJSON(),
@@ -148,7 +148,7 @@ export async function desbloquearConsulta(pacienteId, llaveEscrita) {
     const id = Number(pacienteId);
     const medico = await obtenerMedicoActual();
     if (!medico) return sinSesion();
-    if (!await atiendeEnConsultorio(id, medico.consultorioId)) return sinPermiso();
+    if (!await esPacienteDelMedico(id, medico.id)) return sinPermiso();
 
     const buscada = normalizarLlave(llaveEscrita);
     if (buscada.length !== LARGO_LLAVE) {
@@ -197,7 +197,7 @@ export async function crearConsulta(consulta) {
     if (!medico) return sinSesion();
 
     const pacienteId = Number(consulta.pacienteId);
-    if (!await atiendeEnConsultorio(pacienteId, medico.consultorioId)) return sinPermiso();
+    if (!await esPacienteDelMedico(pacienteId, medico.id)) return sinPermiso();
 
     // Mismas validaciones que hará el servidor (el formulario se puede saltar)
     const peso = Number(consulta.peso);

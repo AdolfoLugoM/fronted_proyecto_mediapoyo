@@ -1,7 +1,7 @@
 {
     "meta": {
         "simulado": true,
-        "descripcion": "Pacientes ficticios para pruebas. Un registro por persona (CURP única). 'consultorios' indica en qué consultorios se atiende; el navegador nunca lo recibe. Sexo con los valores de la CURP: H (hombre), M (mujer), X (no binario)."
+        "descripcion": "Pacientes ficticios para pruebas. Un registro por persona (CURP única). 'medicos' indica con qué médicos se atiende; el navegador nunca lo recibe. Sexo: M (masculino) o F (femenino)."
     },
     "pacientes": [
         {
@@ -10,13 +10,13 @@
             "apellidos": "López Ramírez",
             "curp": "YOOQ860928MNLXJH08",
             "fechaNacimiento": "1986-09-28",
-            "sexo": "M",
+            "sexo": "F",
             "telefono": "555 010 0001",
             "correo": "ana.lopez@example.com",
             "tipoSangre": "A-",
             "alergias": "Penicilina",
             "enfermedadesCronicas": "",
-            "consultorios": [1, 2]
+            "medicos": [1, 2, 4]
         },
         {
             "id": 2,
@@ -24,13 +24,13 @@
             "apellidos": "Hernández Soto",
             "curp": "ZFDO881120HPLMGD08",
             "fechaNacimiento": "1988-11-20",
-            "sexo": "H",
+            "sexo": "M",
             "telefono": "555 010 0002",
             "correo": "carlos.hernandez@example.com",
             "tipoSangre": "B+",
             "alergias": "Ninguna conocida",
             "enfermedadesCronicas": "",
-            "consultorios": [1]
+            "medicos": [1, 4]
         },
         {
             "id": 3,
@@ -38,13 +38,13 @@
             "apellidos": "Ortiz Beltrán",
             "curp": "BTMO091221MYNZYZA2",
             "fechaNacimiento": "2009-12-21",
-            "sexo": "M",
+            "sexo": "F",
             "telefono": "555 010 0003",
             "correo": "jorge.ortiz@example.com",
             "tipoSangre": "B-",
             "alergias": "",
             "enfermedadesCronicas": "",
-            "consultorios": [1]
+            "medicos": [1]
         },
         {
             "id": 4,
@@ -52,13 +52,13 @@
             "apellidos": "Martínez Cota",
             "curp": "QCBB970127HQTJKY00",
             "fechaNacimiento": "1997-01-27",
-            "sexo": "H",
+            "sexo": "M",
             "telefono": "555 010 0004",
             "correo": "jose.martinez@example.com",
             "tipoSangre": "AB+",
             "alergias": "",
             "enfermedadesCronicas": "",
-            "consultorios": [3]
+            "medicos": [3]
         },
         {
             "id": 5,
@@ -66,13 +66,13 @@
             "apellidos": "Gómez Valdez",
             "curp": "OSGQ070811MJCKZMA7",
             "fechaNacimiento": "2007-08-11",
-            "sexo": "M",
+            "sexo": "F",
             "telefono": "555 010 0005",
             "correo": "lucia.gomez@example.com",
             "tipoSangre": "AB-",
             "alergias": "",
             "enfermedadesCronicas": "",
-            "consultorios": [1]
+            "medicos": [4]
         },
         {
             "id": 6,
@@ -80,13 +80,13 @@
             "apellidos": "Rojas Ibarra",
             "curp": "OUIN581103HNLWDL05",
             "fechaNacimiento": "1958-11-03",
-            "sexo": "H",
+            "sexo": "M",
             "telefono": "555 010 0006",
             "correo": "miguel.rojas@example.com",
             "tipoSangre": "O+",
             "alergias": "Ninguna conocida",
             "enfermedadesCronicas": "Hipertensión arterial",
-            "consultorios": [1, 2, 3]
+            "medicos": [2, 3, 4]
         },
         {
             "id": 7,
@@ -94,13 +94,13 @@
             "apellidos": "Navarro Leyva",
             "curp": "JACS060417MPLFQFA4",
             "fechaNacimiento": "2006-04-17",
-            "sexo": "M",
+            "sexo": "F",
             "telefono": "555 010 0007",
             "correo": "sofia.navarro@example.com",
             "tipoSangre": "O-",
             "alergias": "",
             "enfermedadesCronicas": "",
-            "consultorios": [2]
+            "medicos": [2]
         },
         {
             "id": 8,
@@ -108,13 +108,13 @@
             "apellidos": "Ruiz Camacho",
             "curp": "VAGG820201HYNCTQ06",
             "fechaNacimiento": "1982-02-01",
-            "sexo": "H",
+            "sexo": "M",
             "telefono": "555 010 0008",
             "correo": "jorge.ruiz@example.com",
             "tipoSangre": "A+",
             "alergias": "",
             "enfermedadesCronicas": "",
-            "consultorios": [1]
+            "medicos": [1, 4]
         },
         {
             "id": 9,
@@ -122,13 +122,13 @@
             "apellidos": "Castro Félix",
             "curp": "UGYV840219MQTLND04",
             "fechaNacimiento": "1984-02-19",
-            "sexo": "M",
+            "sexo": "F",
             "telefono": "555 010 0009",
             "correo": "daniela.castro@example.com",
             "tipoSangre": "A-",
             "alergias": "",
             "enfermedadesCronicas": "",
-            "consultorios": [1]
+            "medicos": [1, 4]
         },
         {
             "id": 10,
@@ -136,13 +136,13 @@
             "apellidos": "Salazar Olmos",
             "curp": "YDEH790114HJCFBC07",
             "fechaNacimiento": "1979-01-14",
-            "sexo": "H",
+            "sexo": "M",
             "telefono": "555 010 0010",
             "correo": "ricardo.salazar@example.com",
             "tipoSangre": "B+",
             "alergias": "",
             "enfermedadesCronicas": "",
-            "consultorios": [3]
+            "medicos": [3]
         },
         {
             "id": 11,
@@ -150,13 +150,13 @@
             "apellidos": "Mendoza Ríos",
             "curp": "VRGO090806MNLVJGA6",
             "fechaNacimiento": "2009-08-06",
-            "sexo": "M",
+            "sexo": "F",
             "telefono": "555 010 0011",
             "correo": "paola.mendoza@example.com",
             "tipoSangre": "B-",
             "alergias": "",
             "enfermedadesCronicas": "",
-            "consultorios": [1]
+            "medicos": [1]
         },
         {
             "id": 12,
@@ -164,13 +164,13 @@
             "apellidos": "Vega Lara",
             "curp": "MNGA990704HPLLXM00",
             "fechaNacimiento": "1999-07-04",
-            "sexo": "H",
+            "sexo": "M",
             "telefono": "555 010 0012",
             "correo": "andres.vega@example.com",
             "tipoSangre": "AB+",
             "alergias": "",
             "enfermedadesCronicas": "",
-            "consultorios": [1]
+            "medicos": [4]
         },
         {
             "id": 13,
@@ -178,13 +178,13 @@
             "apellidos": "López Guzmán",
             "curp": "TUSD710313HYNCGJ07",
             "fechaNacimiento": "1971-03-13",
-            "sexo": "H",
+            "sexo": "M",
             "telefono": "555 010 0013",
             "correo": "roberto.lopez@example.com",
             "tipoSangre": "AB-",
             "alergias": "Sulfas",
             "enfermedadesCronicas": "Diabetes tipo 2",
-            "consultorios": [3, 1]
+            "medicos": [1, 3]
         },
         {
             "id": 14,
@@ -192,13 +192,13 @@
             "apellidos": "Lugo Martínez",
             "curp": "LUMA030807HSLGRDA7",
             "fechaNacimiento": "2003-08-07",
-            "sexo": "H",
+            "sexo": "M",
             "telefono": "331 622 1013",
             "correo": "adolfolugomartinez@gmail.com",
             "tipoSangre": "A+",
             "alergias": "",
             "enfermedadesCronicas": "",
-            "consultorios": [1]
+            "medicos": [1]
         },
         {
             "id": 15,
@@ -206,13 +206,13 @@
             "apellidos": "Santos Luna",
             "curp": "SALE051227HSLNNMA2",
             "fechaNacimiento": "2005-12-27",
-            "sexo": "H",
+            "sexo": "M",
             "telefono": "6871454290",
             "correo": "palomo.santos@example.com",
             "tipoSangre": "A+",
             "alergias": "",
             "enfermedadesCronicas": "",
-            "consultorios": [1]
+            "medicos": [1]
         }
     ]
 }

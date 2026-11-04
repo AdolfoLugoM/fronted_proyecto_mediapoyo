@@ -2,8 +2,8 @@
 // El calendario SOLO usa estas funciones: HOY leen un JSON y MAÑANA llaman a la API.
 // Para conectar la base de datos basta con poner USAR_API = true (y ajustar las URLs).
 //
-// Consultorios independientes: cada consultorio ve y maneja SOLO su propia agenda.
-// Una cita pertenece a un consultorio y a un paciente que se atiende en él.
+// Cada médico ve y maneja SOLO su propia agenda.
+// Una cita pertenece a un médico y a un paciente suyo.
 // "Eliminar" no borra el registro: lo marca como cancelado (así queda constancia de que existió).
 
 import { obtenerMedicoActual } from './sesionServicio.js';
@@ -55,7 +55,7 @@ const error = (codigo, message) => ({ success: false, codigo, message });
 const SIN_SESION = error('SIN_SESION', 'Inicia sesión como médico para manejar la agenda.');
 const NO_ENCONTRADA = error('NO_ENCONTRADA', 'No se encontró esta cita en tu agenda. Puede que ya se haya eliminado.');
 
-/** Revisa fecha y hora: formato, que no haya pasado y que quepa en el horario del consultorio. */
+/** Revisa fecha y hora: formato, que no haya pasado y que quepa en el horario de la agenda. */
 function validarHorario(fecha, hora) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha ?? '') || !/^\d{2}:\d{2}$/.test(hora ?? '')) {
         return error('HORARIO_INVALIDO', 'Escribe una fecha y una hora válidas.');
@@ -74,27 +74,27 @@ function validarHorario(fecha, hora) {
     return null;
 }
 
-/** ¿Choca con otra cita activa del mismo consultorio? (excluirId: la cita que se está moviendo) */
-function seEmpalma(lista, consultorioId, inicio, excluirId = null) {
+/** ¿Choca con otra cita activa del mismo médico? (excluirId: la cita que se está moviendo) */
+function seEmpalma(lista, medicoId, inicio, excluirId = null) {
     const nuevo = new Date(inicio).getTime();
     const duracion = DURACION_CITA_MIN * 60000;
-    
+
     return lista.some(c =>
         activa(c) &&
-        c.consultorioId === consultorioId &&
+        c.medicoId === medicoId &&
         c.id !== excluirId &&
         Math.abs(new Date(c.inicio).getTime() - nuevo) < duracion
     );
 }
 
-// Busca una cita activa de MI consultorio (de otro consultorio responde como si no existiera)
+// Busca una cita activa de MI agenda (de otro médico responde como si no existiera)
 async function buscarCitaPropia(id) {
     const medico = await obtenerMedicoActual();
     if (!medico) return { problema: SIN_SESION };
     
     const lista = await cargarJSON();
     const cita = lista.find(c => c.id === Number(id));
-    if (!cita || !activa(cita) || cita.consultorioId !== medico.consultorioId) return { problema: NO_ENCONTRADA };
+    if (!cita || !activa(cita) || cita.medicoId !== medico.id) return { problema: NO_ENCONTRADA };
     
     return { medico, lista, cita };
 }
@@ -102,7 +102,7 @@ async function buscarCitaPropia(id) {
 // ----- Funciones que usa el calendario -----
 
 /**
-* Citas del consultorio del médico en sesión dentro de un rango (el calendario pide solo lo visible).
+* Citas del médico en sesión dentro de un rango (el calendario pide solo lo visible).
 * Devuelve siempre la misma forma, venga del JSON o de la API:
 *   [ { id, inicio: "2026-10-26T09:00:00", fin: "2026-10-26T09:30:00",
 *       paciente: { id, nombre, apellidos, curp } } ]
@@ -125,7 +125,7 @@ export async function obtenerCitas({ desde, hasta } = {}) {
     
     const visibles = (await cargarJSON()).filter(c =>
         activa(c) &&
-        c.consultorioId === medico.consultorioId &&
+        c.medicoId === medico.id &&
         (!desdeLocal || c.inicio >= desdeLocal) &&
         (!hastaLocal || c.inicio < hastaLocal)
     );
@@ -141,7 +141,7 @@ export async function obtenerCitas({ desde, hasta } = {}) {
 }
 
 /**
-* Agenda una cita para un paciente de MI consultorio (se identifica por su CURP).
+* Agenda una cita para un paciente MÍO (se identifica por su CURP).
 * Responde { success: true } o { success: false, codigo, message }.
 * Con la API real, estas mismas validaciones deben repetirse en el servidor.
 */
@@ -163,23 +163,22 @@ export async function crearCita({ fecha, hora, curp }) {
     const problema = validarHorario(fecha, hora);
     if (problema) return problema;
     
-    const paciente = await buscarPacientePorCurp(curp, medico.consultorioId);
+    const paciente = await buscarPacientePorCurp(curp, medico.id);
     if (!paciente) {
         return error('PACIENTE_NO_ENCONTRADO',
-            'No hay un paciente con esa CURP en tu consultorio. Regístralo primero con "Nuevo Paciente".');
+            'No hay un paciente con esa CURP entre tus pacientes. Regístralo primero con "Nuevo Paciente".');
     }
-    
+
     const lista = await cargarJSON();
     const inicio = `${fecha}T${hora}:00`;
-    
-    if (seEmpalma(lista, medico.consultorioId, inicio)) {
+
+    if (seEmpalma(lista, medico.id, inicio)) {
         return error('HORARIO_OCUPADO', 'Ya hay una cita en ese horario. Elige otra hora.');
     }
     
     const nueva = {
         id: Math.max(0, ...lista.map(c => c.id)) + 1,
         inicio,
-        consultorioId: medico.consultorioId,
         pacienteId: paciente.id,
         medicoId: medico.id,
         estado: 'agendada'
@@ -190,7 +189,7 @@ export async function crearCita({ fecha, hora, curp }) {
 }
 
 /**
-* Cambia la fecha y/o la hora de una cita de MI consultorio que todavía no ha pasado.
+* Cambia la fecha y/o la hora de una cita MÍA que todavía no ha pasado.
 * Responde { success: true } o { success: false, codigo, message }.
 */
 export async function actualizarCita(id, { fecha, hora }) {
@@ -216,7 +215,7 @@ export async function actualizarCita(id, { fecha, hora }) {
     const inicio = `${fecha}T${hora}:00`;
     if (inicio === cita.inicio) return { success: true };     // no cambió nada
     
-    if (seEmpalma(lista, cita.consultorioId, inicio, cita.id)) {
+    if (seEmpalma(lista, cita.medicoId, inicio, cita.id)) {
         return error('HORARIO_OCUPADO', 'Ya hay una cita en ese horario. Elige otra hora.');
     }
     
@@ -227,7 +226,7 @@ export async function actualizarCita(id, { fecha, hora }) {
 }
 
 /**
-* "Elimina" una cita de MI consultorio que todavía no ha pasado: la marca como cancelada
+* "Elimina" una cita MÍA que todavía no ha pasado: la marca como cancelada
 * y deja de aparecer en el calendario. Responde { success: true } o { success: false, codigo, message }.
 */
 export async function eliminarCita(id) {

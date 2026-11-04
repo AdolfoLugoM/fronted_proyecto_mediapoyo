@@ -1,6 +1,6 @@
 // Botón "Nuevo Paciente" y su formulario.
 // Al guardar: avisa que se registró y abre el formulario de consulta de ese paciente.
-// Si la CURP ya existe en otro consultorio, el servicio solo lo vincula con este (sin duplicarlo)
+// Si la CURP ya existe con otro médico, el servicio solo lo vincula con este (sin duplicarlo)
 // y la pantalla muestra el mismo aviso, para no revelar dónde más se atiende.
 import { mostrarVista, marcarBoton, irAlInicio } from './vistas.js';
 import { crearPaciente } from '../servicios/pacientesServicio.js';
@@ -22,7 +22,7 @@ function leerPaciente() {
         apellidos: datos.apellidos,
         curp: datos.curp,
         fechaNacimiento: datos.nacimiento,
-        sexo: datos.sexo,                      // H, M o X, igual que en la CURP
+        sexo: datos.sexo,                      // M (masculino) o F (femenino)
         telefono: datos.telefono,
         correo: datos.correo,
         tipoSangre: datos['tipo-sangre'],
@@ -67,7 +67,7 @@ formPaciente?.addEventListener('submit', async (evento) => {
         const resultado = await crearPaciente(leerPaciente());
         
         if (!resultado.success) {
-            // Por ejemplo, la CURP ya está dada de alta en este consultorio: se avisa y se deja el cursor en ese campo
+            // Por ejemplo, la CURP ya está entre tus pacientes: se avisa y se deja el cursor en ese campo
             mostrarAviso(resultado.message ?? 'No se pudo guardar el paciente.', 'error');
             if (resultado.codigo === 'CURP_DUPLICADA') {
                 campoCurp.focus();
