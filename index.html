@@ -299,6 +299,21 @@
         <!-- Vista: Buscar Enfermedad -->
         <section id="vista-buscar-enfermedad" class="vista">
             <h1>Buscar Enfermedad</h1>
+            
+            <div class="navegador-enfermedades">
+                <div class="panel-enfermedades">
+                    <label for="buscador-enfermedad" class="etiqueta-buscador">Filtrar enfermedades o síntomas</label>
+                    <input type="search" id="buscador-enfermedad" autocomplete="off" spellcheck="false"
+                        placeholder="Filtrar enfermedades o síntomas...">
+                    
+                    <p class="contador-enfermedades" id="contador-enfermedades" aria-live="polite"></p>
+                    <ul class="lista-enfermedades" id="lista-enfermedades"></ul>
+                </div>
+                
+                <article class="detalle-enfermedad" id="detalle-enfermedad" aria-live="polite">
+                    <p class="detalle-vacio">Elige una enfermedad de la lista para ver su descripción y sus síntomas.</p>
+                </article>
+            </div>
         </section>
         
         <section id="vista-consulta" class="vista">
@@ -345,12 +360,18 @@
                     <div class="enfermedades-sugeridas" id="enfermedades-sugeridas" aria-live="polite" hidden></div>
                 </div>
                 
-                <!-- Enfermedad (opcional: una consulta puede no tener diagnóstico) -->
+                <!-- Enfermedad (opcional): se escribe y la lista propone coincidencias, igual que los síntomas -->
                 <div class="campo">
                     <label for="consulta-enfermedad">Enfermedad</label>
-                    <select id="consulta-enfermedad" name="enfermedad">
-                        <option value="">Sin diagnóstico (revisión)</option>
-                    </select>
+
+                    <div class="buscador-sintomas" id="consulta-buscador-enfermedad">
+                        <input type="text" id="consulta-enfermedad" autocomplete="off" spellcheck="false"
+                            placeholder="Escribe una enfermedad, por ejemplo: dengue"
+                            role="combobox" aria-expanded="false" aria-controls="consulta-sugerencias-enfermedad" aria-autocomplete="list">
+                        <ul id="consulta-sugerencias-enfermedad" class="sugerencias-sintomas" role="listbox" hidden></ul>
+                    </div>
+
+                    <p class="contador-sintomas" id="consulta-estado-enfermedad" aria-live="polite">Sin diagnóstico (revisión)</p>
                 </div>
                 
                 <!-- Notas -->

@@ -1,7 +1,147 @@
 /* ==========================================================================
 BUSCAR ENFERMEDAD: estilos de la vista #vista-buscar-enfermedad
+Dos columnas: lista con buscador a la izquierda, detalle a la derecha
 ========================================================================== */
 
-/* #vista-buscar-enfermedad {
-    /* Agrega aquí los estilos de esta vista */
-} */
+.navegador-enfermedades {
+    display: grid;
+    grid-template-columns: minmax(240px, 340px) 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.panel-enfermedades,
+.detalle-enfermedad {
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 12px;
+    padding: 20px;
+    color: var(--color-texto);
+}
+
+.etiqueta-buscador {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    color: var(--color-placeholder);
+}
+
+#buscador-enfermedad {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    border: 1px solid var(--color-borde);
+    border-radius: 6px;
+    background-color: var(--color-superficie);
+    color: var(--color-texto);
+    font: inherit;
+}
+
+#buscador-enfermedad:focus {
+    outline: none;
+    border-color: var(--color-acento);
+}
+
+.contador-enfermedades {
+    margin: 12px 0 8px;
+    font-size: 0.8rem;
+    color: var(--color-placeholder);
+}
+
+.lista-enfermedades {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    max-height: 60vh;
+    overflow-y: auto;
+    list-style: none;
+}
+
+.item-enfermedad {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    font: inherit;
+    text-align: left;
+    color: var(--color-texto);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.item-enfermedad small {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    color: var(--color-placeholder);
+}
+
+.item-enfermedad:hover,
+.item-enfermedad:focus-visible {
+    border-color: var(--color-acento);
+}
+
+.item-enfermedad[aria-pressed="true"] {
+    background-color: rgba(56, 189, 248, 0.18);
+    border-color: var(--color-acento);
+    font-weight: 600;
+}
+
+/* Detalle de la enfermedad elegida */
+.detalle-enfermedad h2 {
+    margin: 0 0 8px;
+}
+
+.detalle-enfermedad h3 {
+    margin: 20px 0 10px;
+    font-size: 0.9rem;
+    color: var(--color-placeholder);
+}
+
+.detalle-descripcion {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.detalle-vacio {
+    margin: 0;
+    color: var(--color-placeholder);
+}
+
+.sintomas-enfermedad {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.chip-sintoma-detalle {
+    padding: 4px 12px;
+    background-color: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 999px;
+    font-size: 0.85rem;
+}
+
+/* Síntoma que coincide con el texto buscado */
+.chip-sintoma-detalle.resaltado {
+    background-color: rgba(56, 189, 248, 0.18);
+    border-color: var(--color-acento);
+    font-weight: 600;
+}
+
+/* En pantallas angostas, la lista va arriba y el detalle debajo */
+@media (max-width: 760px) {
+    .navegador-enfermedades {
+        grid-template-columns: 1fr;
+    }
+    
+    .lista-enfermedades {
+        max-height: 40vh;
+    }
+}

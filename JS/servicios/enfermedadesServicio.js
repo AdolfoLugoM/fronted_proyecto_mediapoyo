@@ -36,6 +36,29 @@ export async function obtenerEnfermedades() {
 }
 
 /**
+* Catálogo completo con los síntomas de cada enfermedad, para el navegador de enfermedades.
+* Devuelve [ { id, nombre, descripcion, sintomaIds: [ ... ] } ], ordenada por nombre.
+*/
+export async function obtenerEnfermedadesConSintomas() {
+    if (USAR_API) {
+        const respuesta = await fetch(`${URL_API}?incluir=sintomas`);
+        if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+        return respuesta.json();
+    }
+    
+    const [enfermedades, detalle] = await Promise.all([
+        obtenerEnfermedades(),
+        cacheDetalle ?? leerJSON(URL_JSON_DETALLE, 'detalle')
+    ]);
+    cacheDetalle = detalle;
+    
+    return enfermedades.map(e => ({
+        ...e,
+        sintomaIds: detalle.filter(d => d.enfermedadId === e.id).map(d => d.sintomaId)
+    }));
+}
+
+/**
 * Enfermedades que tienen los síntomas indicados, de la más probable a la menos.
 * Devuelve [ { id, nombre, coincidencias, total } ]:
 *   coincidencias = cuántos de los síntomas indicados tiene la enfermedad
