@@ -6,12 +6,14 @@ import { mostrarVista, marcarBoton, irAlInicio } from './vistas.js';
 import { crearPaciente } from '../servicios/pacientesServicio.js';
 import { abrirConsulta } from './consulta.js';
 import { mostrarAviso } from './avisos.js';
+import { fechaHoraLocal } from '../servicios/auditoriaServicio.js';
 
 const boton = document.getElementById('boton1');
 const formPaciente = document.getElementById('formulario-paciente');
 const btnCancelarPaciente = document.getElementById('btn-cancelar-paciente');
 const btnGuardar = formPaciente?.querySelector('button[type="submit"]');
 const campoCurp = document.getElementById('curp');
+const campoNacimiento = document.getElementById('nacimiento');
 
 // Convierte los campos del formulario en el paciente que entiende el servicio.
 // Es el único lugar donde se traducen los nombres del formulario a los del modelo de datos.
@@ -23,9 +25,8 @@ function leerPaciente() {
         curp: datos.curp,
         fechaNacimiento: datos.nacimiento,
         sexo: datos.sexo,                      // M (masculino) o F (femenino)
-        telefono: datos.telefono,
-        correo: datos.correo,
-        tipoSangre: datos['tipo-sangre'],
+        telefono: datos.telefono ? Number(datos.telefono) : null,   // NumeroTelefono es INT; vacío = null
+        tipoSangre: datos['tipo-sangre'] || null,   // "No definido" se guarda como null
         notas: datos.notas ?? ''
     };
 }
@@ -34,6 +35,7 @@ function leerPaciente() {
 boton?.addEventListener('click', () => {
     marcarBoton(boton);
     mostrarVista('vista-nuevo-paciente');
+    campoNacimiento.max = fechaHoraLocal().slice(0, 10);       // no se aceptan fechas futuras
     document.getElementById('nombre')?.focus();
 });
 

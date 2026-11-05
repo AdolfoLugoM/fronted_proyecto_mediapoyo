@@ -13,9 +13,9 @@ const CLAVE_ALMACEN = 'medicoSesionId';     // sessionStorage: cada pestaña tie
 
 const esperar = (ms) => new Promise(resolver => setTimeout(resolver, ms));
 
-// Solo lo que la aplicación necesita saber del médico (nunca la contraseña).
+// Solo lo que la aplicación necesita saber del médico (nunca la contraseña ni la e-firma).
 
-const publico = ({ id, nombre, apellidos }) => ({ id, nombre, apellidos });
+const publico = ({ id, nombre, apellidos, ciudad }) => ({ id, nombre, apellidos, ciudad });
 
 /** Inicia sesión. Responde { success: true, medico } o { success: false, message }. */
 export async function iniciarSesion(usuario, clave) {
@@ -58,7 +58,7 @@ export async function obtenerMedicoActual() {
 
 /**
 * Actualiza el perfil del médico EN SESIÓN (nunca el de otro: no recibe id).
-* Recibe solo los campos que cambiaron: { nombre?, apellidos? }.
+* Recibe solo los campos que cambiaron: { nombre?, apellidos?, ciudad? }.
 * Responde { success: true, medico } o { success: false, codigo, message }.
 * Con la API real, el servidor toma el id de la cookie de sesión, no de lo que mande el navegador.
 */

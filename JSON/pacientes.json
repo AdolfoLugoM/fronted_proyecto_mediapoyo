@@ -1,7 +1,7 @@
 {
     "meta": {
         "simulado": true,
-        "descripcion": "Pacientes ficticios para pruebas. Un registro por persona (CURP única). 'medicos' indica con qué médicos se atiende; el navegador nunca lo recibe. Sexo: M (masculino) o F (femenino)."
+        "descripcion": "Pacientes ficticios para pruebas (tabla Pacientes: PacienteID, Nombre, Apellidos, CURP, FechaNacimiento, NumeroTelefono INT, Sexo, TipoDeSangre, Notas). Un registro por persona (CURP única y válida). Con qué médico se atiende cada paciente se saca de las tablas Citas y Consultas. Sexo: M (masculino) o F (femenino). TipoDeSangre, NumeroTelefono y Notas pueden ser null."
     },
     "pacientes": [
         {
@@ -11,68 +11,53 @@
             "curp": "YOOQ860928MNLXJH08",
             "fechaNacimiento": "1986-09-28",
             "sexo": "F",
-            "telefono": "555 010 0001",
-            "correo": "ana.lopez@example.com",
+            "telefono": 5550100001,
             "tipoSangre": "A-",
-            "alergias": "Penicilina",
-            "enfermedadesCronicas": "",
-            "medicos": [1, 2, 4]
+            "notas": "Alergia: Penicilina"
         },
         {
             "id": 2,
             "nombre": "Carlos",
             "apellidos": "Hernández Soto",
-            "curp": "ZFDO881120HPLMGD08",
+            "curp": "HESC881120HPLMGD08",
             "fechaNacimiento": "1988-11-20",
             "sexo": "M",
-            "telefono": "555 010 0002",
-            "correo": "carlos.hernandez@example.com",
+            "telefono": 5550100002,
             "tipoSangre": "B+",
-            "alergias": "Ninguna conocida",
-            "enfermedadesCronicas": "",
-            "medicos": [1, 4]
+            "notas": ""
         },
         {
             "id": 3,
             "nombre": "Jorge",
             "apellidos": "Ortiz Beltrán",
-            "curp": "BTMO091221MYNZYZA2",
+            "curp": "OIBJ091221MYNZYZA2",
             "fechaNacimiento": "2009-12-21",
             "sexo": "F",
-            "telefono": "555 010 0003",
-            "correo": "jorge.ortiz@example.com",
+            "telefono": 5550100003,
             "tipoSangre": "B-",
-            "alergias": "",
-            "enfermedadesCronicas": "",
-            "medicos": [1]
+            "notas": ""
         },
         {
             "id": 4,
             "nombre": "José Luis",
             "apellidos": "Martínez Cota",
-            "curp": "QCBB970127HQTJKY00",
+            "curp": "MACJ970127HQTJKY00",
             "fechaNacimiento": "1997-01-27",
             "sexo": "M",
-            "telefono": "555 010 0004",
-            "correo": "jose.martinez@example.com",
+            "telefono": 5550100004,
             "tipoSangre": "AB+",
-            "alergias": "",
-            "enfermedadesCronicas": "",
-            "medicos": [3]
+            "notas": ""
         },
         {
             "id": 5,
             "nombre": "Lucía",
             "apellidos": "Gómez Valdez",
-            "curp": "OSGQ070811MJCKZMA7",
+            "curp": "GOVL070811MJCKZMA7",
             "fechaNacimiento": "2007-08-11",
             "sexo": "F",
-            "telefono": "555 010 0005",
-            "correo": "lucia.gomez@example.com",
+            "telefono": 5550100005,
             "tipoSangre": "AB-",
-            "alergias": "",
-            "enfermedadesCronicas": "",
-            "medicos": [4]
+            "notas": ""
         },
         {
             "id": 6,
@@ -81,12 +66,9 @@
             "curp": "OUIN581103HNLWDL05",
             "fechaNacimiento": "1958-11-03",
             "sexo": "M",
-            "telefono": "555 010 0006",
-            "correo": "miguel.rojas@example.com",
+            "telefono": 5550100006,
             "tipoSangre": "O+",
-            "alergias": "Ninguna conocida",
-            "enfermedadesCronicas": "Hipertensión arterial",
-            "medicos": [2, 3, 4]
+            "notas": "Hipertensión arterial"
         },
         {
             "id": 7,
@@ -95,12 +77,9 @@
             "curp": "JACS060417MPLFQFA4",
             "fechaNacimiento": "2006-04-17",
             "sexo": "F",
-            "telefono": "555 010 0007",
-            "correo": "sofia.navarro@example.com",
+            "telefono": 5550100007,
             "tipoSangre": "O-",
-            "alergias": "",
-            "enfermedadesCronicas": "",
-            "medicos": [2]
+            "notas": ""
         },
         {
             "id": 8,
@@ -109,68 +88,53 @@
             "curp": "VAGG820201HYNCTQ06",
             "fechaNacimiento": "1982-02-01",
             "sexo": "M",
-            "telefono": "555 010 0008",
-            "correo": "jorge.ruiz@example.com",
+            "telefono": 5550100008,
             "tipoSangre": "A+",
-            "alergias": "",
-            "enfermedadesCronicas": "",
-            "medicos": [1, 4]
+            "notas": ""
         },
         {
             "id": 9,
             "nombre": "Daniela",
             "apellidos": "Castro Félix",
-            "curp": "UGYV840219MQTLND04",
+            "curp": "CAFD840219MQTLND04",
             "fechaNacimiento": "1984-02-19",
             "sexo": "F",
-            "telefono": "555 010 0009",
-            "correo": "daniela.castro@example.com",
+            "telefono": 5550100009,
             "tipoSangre": "A-",
-            "alergias": "",
-            "enfermedadesCronicas": "",
-            "medicos": [1, 4]
+            "notas": ""
         },
         {
             "id": 10,
             "nombre": "Ricardo",
             "apellidos": "Salazar Olmos",
-            "curp": "YDEH790114HJCFBC07",
+            "curp": "SAOR790114HJCFBC07",
             "fechaNacimiento": "1979-01-14",
             "sexo": "M",
-            "telefono": "555 010 0010",
-            "correo": "ricardo.salazar@example.com",
+            "telefono": 5550100010,
             "tipoSangre": "B+",
-            "alergias": "",
-            "enfermedadesCronicas": "",
-            "medicos": [3]
+            "notas": ""
         },
         {
             "id": 11,
             "nombre": "Paola",
             "apellidos": "Mendoza Ríos",
-            "curp": "VRGO090806MNLVJGA6",
+            "curp": "MERP090806MNLVJGA6",
             "fechaNacimiento": "2009-08-06",
             "sexo": "F",
-            "telefono": "555 010 0011",
-            "correo": "paola.mendoza@example.com",
+            "telefono": 5550100011,
             "tipoSangre": "B-",
-            "alergias": "",
-            "enfermedadesCronicas": "",
-            "medicos": [1]
+            "notas": ""
         },
         {
             "id": 12,
             "nombre": "Andrés",
             "apellidos": "Vega Lara",
-            "curp": "MNGA990704HPLLXM00",
+            "curp": "VELA990704HPLLXM00",
             "fechaNacimiento": "1999-07-04",
             "sexo": "M",
-            "telefono": "555 010 0012",
-            "correo": "andres.vega@example.com",
+            "telefono": 5550100012,
             "tipoSangre": "AB+",
-            "alergias": "",
-            "enfermedadesCronicas": "",
-            "medicos": [4]
+            "notas": ""
         },
         {
             "id": 13,
@@ -179,12 +143,9 @@
             "curp": "TUSD710313HYNCGJ07",
             "fechaNacimiento": "1971-03-13",
             "sexo": "M",
-            "telefono": "555 010 0013",
-            "correo": "roberto.lopez@example.com",
+            "telefono": 5550100013,
             "tipoSangre": "AB-",
-            "alergias": "Sulfas",
-            "enfermedadesCronicas": "Diabetes tipo 2",
-            "medicos": [1, 3]
+            "notas": "Alergia: Sulfas. Diabetes tipo 2"
         },
         {
             "id": 14,
@@ -193,12 +154,9 @@
             "curp": "LUMA030807HSLGRDA7",
             "fechaNacimiento": "2003-08-07",
             "sexo": "M",
-            "telefono": "331 622 1013",
-            "correo": "adolfolugomartinez@gmail.com",
+            "telefono": 3316221013,
             "tipoSangre": "A+",
-            "alergias": "",
-            "enfermedadesCronicas": "",
-            "medicos": [1]
+            "notas": ""
         },
         {
             "id": 15,
@@ -207,12 +165,9 @@
             "curp": "SALE051227HSLNNMA2",
             "fechaNacimiento": "2005-12-27",
             "sexo": "M",
-            "telefono": "6871454290",
-            "correo": "palomo.santos@example.com",
+            "telefono": 6871454290,
             "tipoSangre": "A+",
-            "alergias": "",
-            "enfermedadesCronicas": "",
-            "medicos": [1]
+            "notas": ""
         }
     ]
 }

@@ -9,7 +9,7 @@ let cacheSintomas = null;                     // el catálogo casi no cambia: se
 
 const esperar = (ms) => new Promise(resolver => setTimeout(resolver, ms));
 
-/** Devuelve la lista de síntomas: [ { id, nombre, categoria } ] */
+/** Devuelve la lista de síntomas: [ { id, nombre } ] */
 export async function obtenerSintomas() {
     if (cacheSintomas) return cacheSintomas;
     

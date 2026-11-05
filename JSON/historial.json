@@ -1,7 +1,7 @@
 {
     "meta": {
         "simulado": true,
-        "descripcion": "Consultas ficticias para pruebas (tabla Consultas). enfermedadId puede ser null (revisión sin diagnóstico). peso en kg y altura en cm. Sin la llave, solo el médico que hizo la consulta la puede ver; la llave se le entrega al paciente."
+        "descripcion": "Consultas ficticias para pruebas (tabla Consultas: FechaConsulta es solo fecha, tipo DATE). Peso (kg), altura (cm) y notas son opcionales; la enfermedad es obligatoria (las revisiones sin diagnóstico usan Sin enfermedad (revisión)). Sin la llave, solo el médico que hizo la consulta la puede ver; la llave se le entrega al paciente."
     },
     "consultas": [
         {
@@ -12,7 +12,7 @@
             "edad": 67,
             "peso": 79.5,
             "altura": 168,
-            "fecha": "2026-01-20T10:30:00",
+            "fecha": "2026-01-20",
             "llave": "K7P2Q9XM",
             "notas": "Episodios ocasionales desde hace dos semanas. Se solicita electrocardiograma."
         },
@@ -24,7 +24,7 @@
             "edad": 29,
             "peso": 68.0,
             "altura": 170,
-            "fecha": "2026-02-12T17:20:00",
+            "fecha": "2026-02-12",
             "llave": "R4TW8NZC",
             "notas": "Malestar posterior a un viaje. Se indica reposo e hidratación."
         },
@@ -36,7 +36,7 @@
             "edad": 39,
             "peso": 61.5,
             "altura": 162,
-            "fecha": "2026-03-10T09:30:00",
+            "fecha": "2026-03-10",
             "llave": "H3DF6VLB",
             "notas": "Cuadro de dos días de evolución. Se indica reposo e hidratación."
         },
@@ -44,11 +44,11 @@
             "id": 4,
             "pacienteId": 12,
             "medicoId": 4,
-            "enfermedadId": null,
+            "enfermedadId": 20,
             "edad": 26,
             "peso": 77.0,
             "altura": 180,
-            "fecha": "2026-03-30T14:00:00",
+            "fecha": "2026-03-30",
             "llave": "M9XC2KQT",
             "notas": "Revisión de rutina, sin molestias. Signos vitales dentro de lo normal."
         },
@@ -60,7 +60,7 @@
             "edad": 67,
             "peso": 79.5,
             "altura": 168,
-            "fecha": "2026-04-14T10:30:00",
+            "fecha": "2026-04-14",
             "llave": "Z6NB4RWP",
             "notas": "Se refiere a valoración con especialista."
         },
@@ -72,7 +72,7 @@
             "edad": 55,
             "peso": 85.5,
             "altura": 166,
-            "fecha": "2026-05-05T11:30:00",
+            "fecha": "2026-05-05",
             "llave": "T2LM7HDS",
             "notas": "Se solicitan estudios de laboratorio."
         },
@@ -84,7 +84,7 @@
             "edad": 39,
             "peso": 61.5,
             "altura": 162,
-            "fecha": "2026-05-22T11:00:00",
+            "fecha": "2026-05-22",
             "llave": "W8QF3GJA",
             "notas": "Cefalea desde hace una semana. Se pide control de presión arterial en la próxima visita."
         },
@@ -96,7 +96,7 @@
             "edad": 37,
             "peso": 82.0,
             "altura": 175,
-            "fecha": "2026-06-18T12:00:00",
+            "fecha": "2026-06-18",
             "llave": "B5ZK9TRE",
             "notas": "Inicio posterior a una comida. Se indica hidratación y dieta blanda."
         },
@@ -108,7 +108,7 @@
             "edad": 44,
             "peso": 88.0,
             "altura": 172,
-            "fecha": "2026-07-07T13:10:00",
+            "fecha": "2026-07-07",
             "llave": "P7VH2MXN",
             "notas": "Tres días de evolución. Se indica reposo y revaloración si persiste."
         },
@@ -120,7 +120,7 @@
             "edad": 39,
             "peso": 61.5,
             "altura": 162,
-            "fecha": "2026-08-04T16:15:00",
+            "fecha": "2026-08-04",
             "llave": "E3RJ6WQC",
             "notas": "Síntomas que se repiten cada temporada."
         },
@@ -132,7 +132,7 @@
             "edad": 47,
             "peso": 74.5,
             "altura": 169,
-            "fecha": "2026-08-25T15:40:00",
+            "fecha": "2026-08-25",
             "llave": "N4GT8BZL",
             "notas": "Molestias después de comer. Se recomienda cambiar horarios y tipo de comidas."
         },
@@ -144,7 +144,7 @@
             "edad": 37,
             "peso": 82.0,
             "altura": 175,
-            "fecha": "2026-09-09T08:45:00",
+            "fecha": "2026-09-09",
             "llave": "C9WP5KHD",
             "notas": "Cansancio de varias semanas. Se piden estudios de laboratorio."
         },
@@ -156,7 +156,7 @@
             "edad": 67,
             "peso": 79.5,
             "altura": 168,
-            "fecha": "2026-09-29T09:00:00",
+            "fecha": "2026-09-29",
             "llave": "S6MX3NRV",
             "notas": "Rigidez matutina en rodillas y manos."
         },
@@ -168,7 +168,7 @@
             "edad": 40,
             "peso": 61.5,
             "altura": 162,
-            "fecha": "2026-10-06T10:00:00",
+            "fecha": "2026-10-06",
             "llave": "J2HZ7QTF",
             "notas": "Dolor lumbar tras esfuerzo físico. Se recomienda reposo relativo."
         },
@@ -180,7 +180,7 @@
             "edad": 42,
             "peso": 64.0,
             "altura": 158,
-            "fecha": "2026-10-14T12:20:00",
+            "fecha": "2026-10-14",
             "llave": "L8BD4XPW",
             "notas": "Dos días de evolución. Se programa control."
         },
@@ -192,7 +192,7 @@
             "edad": 39,
             "peso": 61.5,
             "altura": 162,
-            "fecha": "2026-07-15T09:15:00",
+            "fecha": "2026-07-15",
             "llave": "Q5KR9MGU",
             "notas": "Palpitaciones al subir escaleras. Electrocardiograma normal; se indica holter de 24 horas."
         },
@@ -204,7 +204,7 @@
             "edad": 67,
             "peso": 79.5,
             "altura": 168,
-            "fecha": "2026-10-02T11:45:00",
+            "fecha": "2026-10-02",
             "llave": "F3TN6ZWH",
             "notas": "Control de presión arterial: 150/95. Se ajusta tratamiento y se cita en dos semanas."
         }

@@ -1,7 +1,8 @@
 // Capa de acceso a datos de consultas.
 // HOY lee y guarda sobre JSON/historial.json (en memoria); MAÑANA llama a la API (USAR_API = true).
 //
-// Tabla Consultas: id, pacienteId, medicoId, enfermedadId, edad, peso (kg), altura (cm), fecha, llave, notas.
+// Tabla Consultas: id, pacienteId, medicoId, enfermedadId, edad, peso (kg), altura (cm), fecha (DATE), llave, notas.
+// Peso, altura y notas son opcionales; lo demás es obligatorio.
 //
 // Quién ve el detalle de una consulta (enfermedad, medidas y notas):
 //   1. El médico que la hizo: siempre, sin pedir nada.
@@ -102,7 +103,7 @@ export async function obtenerHistorial(pacienteId) {
         success: true,
         consultas: consultas
             .filter(c => c.pacienteId === id && (c.medicoId === medico.id || desbloqueadas.has(c.id)))
-            .sort((a, b) => b.fecha.localeCompare(a.fecha))
+            .sort((a, b) => b.fecha.localeCompare(a.fecha) || b.id - a.id)   // FechaConsulta es solo fecha: el folio desempata
             .map(c => {
                 const propia = c.medicoId === medico.id;
 
@@ -200,18 +201,24 @@ export async function crearConsulta(consulta) {
     if (!await esPacienteDelMedico(pacienteId, medico.id)) return sinPermiso();
 
     // Mismas validaciones que hará el servidor (el formulario se puede saltar)
-    const peso = Number(consulta.peso);
-    if (!(peso >= PESO.min && peso <= PESO.max)) return datoInvalido('peso', `El peso debe estar entre ${PESO.min} y ${PESO.max} kg.`);
+    const vacio = (valor) => valor == null || valor === '';
 
-    const altura = Number(consulta.altura);
-    if (!(altura >= ALTURA.min && altura <= ALTURA.max)) return datoInvalido('altura', `La altura debe estar entre ${ALTURA.min} y ${ALTURA.max} cm.`);
-
-    let enfermedadId = null;
-    if (consulta.enfermedadId != null && consulta.enfermedadId !== '') {
-        enfermedadId = Number(consulta.enfermedadId);
-        const existe = (await obtenerEnfermedades()).some(e => e.id === enfermedadId);
-        if (!existe) return datoInvalido('enfermedad', 'Elige una enfermedad del catálogo.');
+    let peso = null;
+    if (!vacio(consulta.peso)) {
+        peso = Number(consulta.peso);
+        if (!(peso >= PESO.min && peso <= PESO.max)) return datoInvalido('peso', `El peso debe estar entre ${PESO.min} y ${PESO.max} kg.`);
     }
+
+    let altura = null;
+    if (!vacio(consulta.altura)) {
+        altura = Number(consulta.altura);
+        if (!(altura >= ALTURA.min && altura <= ALTURA.max)) return datoInvalido('altura', `La altura debe estar entre ${ALTURA.min} y ${ALTURA.max} cm.`);
+    }
+
+    // La enfermedad es obligatoria (EnfermedadID no admite nulos)
+    const enfermedadId = Number(consulta.enfermedadId);
+    const existe = !vacio(consulta.enfermedadId) && (await obtenerEnfermedades()).some(e => e.id === enfermedadId);
+    if (!existe) return datoInvalido('enfermedad', 'Elige una enfermedad del catálogo.');
 
     const paciente = await obtenerPaciente(pacienteId);
     const consultas = await cargarJSON();
@@ -229,7 +236,7 @@ export async function crearConsulta(consulta) {
         edad: calcularEdad(paciente?.fechaNacimiento), // edad del paciente el día de la consulta
         peso,
         altura,
-        fecha: fechaHoraLocal(),
+        fecha: fechaHoraLocal().slice(0, 10),            // FechaConsulta es DATE: solo "AAAA-MM-DD"
         llave,
         notas: String(consulta.notas ?? '').trim()
     };

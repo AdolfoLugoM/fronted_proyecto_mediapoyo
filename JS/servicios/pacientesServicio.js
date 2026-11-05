@@ -3,33 +3,95 @@
 // Para conectar la base de datos basta con poner USAR_API = true (y ajustar las URLs).
 //
 // Cada paciente es UN registro en toda la plataforma (CURP única), pero cada médico solo encuentra
-// a SUS pacientes: los que registró o con los que ya se vinculó.
-// La lista de médicos de cada paciente NUNCA sale de esta capa: el navegador no debe saber
-// con qué otros médicos se atiende alguien.
+// a SUS pacientes: los que registró, con los que ya se vinculó o con los que tiene una cita o una consulta.
+// El ER no tiene una tabla de vínculos: la relación médico-paciente sale de Citas y Consultas
+// (más los registros hechos en esta sesión). El navegador nunca sabe con qué otros médicos se atiende alguien.
 
 import { obtenerMedicoActual } from './sesionServicio.js';
 import { registrarAuditoria } from './auditoriaServicio.js';
 
 const USAR_API = false;
 const URL_JSON = 'JSON/pacientes.json';     // ruta relativa a index.html
+const URL_CITAS = 'JSON/citas.json';        // solo para saber qué médico atiende a qué paciente
+const URL_CONSULTAS = 'JSON/historial.json';
 const URL_API = '/api/pacientes';           // endpoint futuro (backend + base de datos)
+
+// Reglas del documento "Diseño de datos" (paso 6). Con la API real, el servidor debe repetirlas.
+const CURP_VALIDA = /^[A-Z][AEIOUX][A-Z]{2}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[HMX][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z0-9][0-9]$/;
+const TIPOS_SANGRE = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+const vacio = (valor) => valor == null || String(valor).trim() === '';
+
+const invalido = (campo, message) => ({ success: false, codigo: 'DATO_INVALIDO', campo, message });
+
+// NumeroTelefono es INT: se guarda como número (vacío = null)
+const aTelefono = (valor) => vacio(valor) ? null : Number(String(valor).trim());
+
+// Revisa solo los campos que vienen en "datos" (al crear vienen todos los obligatorios)
+function validarPaciente(datos, completo) {
+    const presente = (campo) => completo || campo in datos;
+
+    for (const campo of ['nombre', 'apellidos']) {
+        if (presente(campo) && vacio(datos[campo])) return invalido(campo, 'El nombre y los apellidos no pueden quedar vacíos.');
+    }
+
+    if (presente('curp') && !CURP_VALIDA.test(String(datos.curp ?? '').trim().toUpperCase())) {
+        return invalido('curp', 'Escribe una CURP válida de 18 caracteres.');
+    }
+
+    if (presente('fechaNacimiento')) {
+        const texto = String(datos.fechaNacimiento ?? '').trim();
+        const [anio, mes, dia] = texto.split('-').map(Number);
+        const fecha = new Date(anio, mes - 1, dia);
+        const real = /^\d{4}-\d{2}-\d{2}$/.test(texto) && fecha.getFullYear() === anio &&
+            fecha.getMonth() === mes - 1 && fecha.getDate() === dia;
+        if (!real || anio < 1900 || fecha > new Date()) return invalido('fechaNacimiento', 'Escribe una fecha de nacimiento válida (no puede ser futura).');
+    }
+
+    if (presente('sexo') && !['M', 'F'].includes(datos.sexo)) return invalido('sexo', 'El sexo debe ser M o F.');
+
+    if ('tipoSangre' in datos && !vacio(datos.tipoSangre) && !TIPOS_SANGRE.includes(datos.tipoSangre)) {
+        return invalido('tipoSangre', 'Elige un tipo de sangre de la lista.');
+    }
+
+    if ('telefono' in datos && !vacio(datos.telefono) && !/^\d{10}$/.test(String(datos.telefono).trim())) {
+        return invalido('telefono', 'El teléfono debe tener 10 dígitos, solo números.');
+    }
+
+    return null;
+}
 
 // Campos que se pueden cambiar al editar (la lista de médicos nunca se toca desde aquí)
 const CAMPOS_EDITABLES = ['nombre', 'apellidos', 'curp', 'fechaNacimiento', 'sexo',
-    'telefono', 'correo', 'tipoSangre', 'notas'];
+    'telefono', 'tipoSangre', 'notas'];
 
 // Lista única en memoria: la leen la búsqueda y la verificación de duplicados,
 // y a ella se suman los pacientes nuevos (viven aquí hasta recargar la página).
 let cachePacientes = null;
+const vinculos = new Map();                // pacienteId -> Set con los ids de sus médicos
+
+const vincular = (pacienteId, medicoId) => {
+    if (!vinculos.has(pacienteId)) vinculos.set(pacienteId, new Set());
+    vinculos.get(pacienteId).add(medicoId);
+};
+
+async function leerTabla(url, tabla) {
+    const respuesta = await fetch(url);
+    if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+    return (await respuesta.json())[tabla];
+}
 
 async function cargarJSON() {
     if (cachePacientes) return cachePacientes;
     
-    const respuesta = await fetch(URL_JSON);
-    if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+    const [pacientes, citas, consultas] = await Promise.all([
+        leerTabla(URL_JSON, 'pacientes'),
+        leerTabla(URL_CITAS, 'citas'),
+        leerTabla(URL_CONSULTAS, 'consultas')
+    ]);
     
-    const datos = await respuesta.json();
-    cachePacientes = datos.pacientes;
+    for (const fila of [...citas, ...consultas]) vincular(fila.pacienteId, fila.medicoId);
+    
+    cachePacientes = pacientes;
     return cachePacientes;
 }
 
@@ -40,12 +102,10 @@ function normalizar(texto) {
 
 const esperar = (ms) => new Promise(resolver => setTimeout(resolver, ms));
 
-// Lo que la pantalla puede ver de un paciente: todo menos la lista de sus médicos
-function publico({ medicos, ...paciente }) {
-    return paciente;
-}
+const esDe = (paciente, medicoId) => vinculos.get(paciente.id)?.has(medicoId) ?? false;
 
-const esDe = (paciente, medicoId) => (paciente.medicos ?? []).includes(medicoId);
+// Copia del paciente para la pantalla (así no modifica la lista en memoria)
+const publico = (paciente) => ({ ...paciente });
 
 /**
 * Busca pacientes por nombre, apellidos o CURP, solo entre los pacientes del médico en sesión.
@@ -155,6 +215,9 @@ export async function crearPaciente(paciente) {
     }
     
     const pacientes = await cargarJSON();
+    const problema = validarPaciente(paciente, true);
+    if (problema) return problema;
+
     const curp = paciente.curp.trim().toUpperCase();
     const existente = pacientes.find(p => p.curp.toUpperCase() === curp);
     
@@ -168,7 +231,7 @@ export async function crearPaciente(paciente) {
         }
 
         // Se atiende con otro médico: se vincula sin crear otro registro y sin cambiar sus datos
-        existente.medicos.push(medico.id);
+        vincular(existente.id, medico.id);
         registrarAuditoria('vincular_paciente', { medicoId: medico.id, pacienteId: existente.id });
         return { success: true, paciente: publico(existente) };
     }
@@ -176,10 +239,14 @@ export async function crearPaciente(paciente) {
     const nuevo = {
         id: Math.max(0, ...pacientes.map(p => p.id)) + 1,
         ...paciente,
-        curp,
-        medicos: [medico.id]
+        nombre: paciente.nombre.trim(),
+        apellidos: paciente.apellidos.trim(),
+        telefono: aTelefono(paciente.telefono),    // INT; vacío = null
+        tipoSangre: paciente.tipoSangre || null,   // "No definido" = null
+        curp
     };
-    pacientes.push(nuevo);                     // desde ahora también aparece en la búsqueda de este médico
+    pacientes.push(nuevo);
+    vincular(nuevo.id, medico.id);                     // desde ahora también aparece en la búsqueda de este médico
     registrarAuditoria('registrar_paciente', { medicoId: medico.id, pacienteId: nuevo.id });
     return { success: true, paciente: publico(nuevo) };
 }
@@ -219,6 +286,9 @@ export async function actualizarPaciente(id, cambios) {
         if (campo in cambios) limpios[campo] = String(cambios[campo] ?? '').trim();
     }
     
+    const problema = validarPaciente(limpios, false);
+    if (problema) return problema;
+
     if ('curp' in limpios) {
         limpios.curp = limpios.curp.toUpperCase();
         const otro = pacientes.find(p => p.id !== paciente.id && p.curp.toUpperCase() === limpios.curp);
@@ -226,6 +296,9 @@ export async function actualizarPaciente(id, cambios) {
             return { success: false, codigo: 'CURP_DUPLICADA', message: 'Esa CURP ya pertenece a otro paciente registrado.' };
         }
     }
+    
+    if ('tipoSangre' in limpios && limpios.tipoSangre === '') limpios.tipoSangre = null;   // "No definido" = null
+    if ('telefono' in limpios) limpios.telefono = aTelefono(limpios.telefono);              // INT; vacío = null
     
     Object.assign(paciente, limpios);
     registrarAuditoria('editar_paciente', { medicoId: medico.id, pacienteId: paciente.id, campos: Object.keys(limpios) });

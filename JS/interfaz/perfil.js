@@ -14,7 +14,7 @@ const formulario = document.getElementById('formulario-editar-perfil');
 const btnCancelar = document.getElementById('btn-cancelar-perfil');
 const btnGuardar = document.getElementById('btn-guardar-perfil');
 
-const CAMPOS = ['nombre', 'apellidos'];   // name del campo = propiedad del médico
+const CAMPOS = ['nombre', 'apellidos', 'ciudad'];   // name del campo = propiedad del médico
 
 let medicoActual = null;
 let guardando = false;

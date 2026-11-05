@@ -1,21 +1,23 @@
 {
     "meta": {
         "simulado": true,
-        "descripcion": "Citas ficticias para pruebas. Cada cita pertenece a un médico (medicoId) y a un paciente (pacienteId). Cada médico solo ve su propia agenda. Las citas eliminadas no se borran: quedan con estado 'cancelada' (así se conserva el registro)."
+        "descripcion": "Citas ficticias para pruebas (tabla Citas: CitaID, MedicoID, PacienteID, FechaCita, HoraCita). Cada médico solo ve su propia agenda. Eliminar una cita la quita de la tabla."
     },
     "citas": [
-        { "id": 1,  "inicio": "2026-10-20T09:00:00", "pacienteId": 2,  "medicoId": 1, "estado": "agendada" },
-        { "id": 2,  "inicio": "2026-10-22T16:00:00", "pacienteId": 8,  "medicoId": 4, "estado": "agendada" },
-        { "id": 3,  "inicio": "2026-10-26T09:00:00", "pacienteId": 1,  "medicoId": 1, "estado": "agendada" },
-        { "id": 4,  "inicio": "2026-10-26T10:30:00", "pacienteId": 14, "medicoId": 1, "estado": "agendada" },
-        { "id": 5,  "inicio": "2026-10-27T12:00:00", "pacienteId": 5,  "medicoId": 4, "estado": "agendada" },
-        { "id": 6,  "inicio": "2026-10-28T15:00:00", "pacienteId": 13, "medicoId": 1, "estado": "agendada" },
-        { "id": 7,  "inicio": "2026-10-30T11:00:00", "pacienteId": 6,  "medicoId": 4, "estado": "agendada" },
-        { "id": 8,  "inicio": "2026-11-03T10:30:00", "pacienteId": 9,  "medicoId": 1, "estado": "agendada" },
-        { "id": 9,  "inicio": "2026-10-27T09:00:00", "pacienteId": 7,  "medicoId": 2, "estado": "agendada" },
-        { "id": 10, "inicio": "2026-10-29T17:00:00", "pacienteId": 1,  "medicoId": 2, "estado": "agendada" },
-        { "id": 11, "inicio": "2026-10-26T09:00:00", "pacienteId": 4,  "medicoId": 3, "estado": "agendada" },
-        { "id": 12, "inicio": "2026-10-28T13:30:00", "pacienteId": 10, "medicoId": 3, "estado": "agendada" },
-        { "id": 13, "inicio": "2026-11-05T09:00:00", "pacienteId": 11, "medicoId": 1, "estado": "agendada" }
+        { "id": 1, "fechaCita": "2026-10-20", "horaCita": "09:00:00", "pacienteId": 2, "medicoId": 1 },
+        { "id": 2, "fechaCita": "2026-10-22", "horaCita": "16:00:00", "pacienteId": 8, "medicoId": 4 },
+        { "id": 3, "fechaCita": "2026-10-26", "horaCita": "09:00:00", "pacienteId": 1, "medicoId": 1 },
+        { "id": 4, "fechaCita": "2026-10-26", "horaCita": "10:30:00", "pacienteId": 14, "medicoId": 1 },
+        { "id": 5, "fechaCita": "2026-10-27", "horaCita": "12:00:00", "pacienteId": 5, "medicoId": 4 },
+        { "id": 6, "fechaCita": "2026-10-28", "horaCita": "15:00:00", "pacienteId": 13, "medicoId": 1 },
+        { "id": 7, "fechaCita": "2026-10-30", "horaCita": "11:00:00", "pacienteId": 6, "medicoId": 4 },
+        { "id": 8, "fechaCita": "2026-11-03", "horaCita": "10:30:00", "pacienteId": 9, "medicoId": 1 },
+        { "id": 9, "fechaCita": "2026-10-27", "horaCita": "09:00:00", "pacienteId": 7, "medicoId": 2 },
+        { "id": 10, "fechaCita": "2026-10-29", "horaCita": "17:00:00", "pacienteId": 1, "medicoId": 2 },
+        { "id": 11, "fechaCita": "2026-10-26", "horaCita": "09:00:00", "pacienteId": 4, "medicoId": 3 },
+        { "id": 12, "fechaCita": "2026-10-28", "horaCita": "13:30:00", "pacienteId": 10, "medicoId": 3 },
+        { "id": 13, "fechaCita": "2026-11-05", "horaCita": "09:00:00", "pacienteId": 11, "medicoId": 1 },
+        { "id": 14, "fechaCita": "2026-11-30", "horaCita": "10:00:00", "pacienteId": 3, "medicoId": 1 },
+        { "id": 15, "fechaCita": "2026-11-30", "horaCita": "11:00:00", "pacienteId": 15, "medicoId": 1 }
     ]
 }

@@ -12,6 +12,12 @@ export function calcularEdad(fechaIso) {
     return hoy.getFullYear() - anio - (aunNoCumple ? 1 : 0);
 }
 
+/** "2026-09-14" -> "lunes, 14 de septiembre de 2026" (fecha sola, sin zona horaria) */
+export function formatearFecha(fechaIso) {
+    const [anio, mes, dia] = fechaIso.split('-').map(Number);
+    return new Date(anio, mes - 1, dia).toLocaleDateString('es-MX', { dateStyle: 'full' });
+}
+
 /** "2026-09-14T10:30:00" -> "lunes, 14 de septiembre de 2026, 10:30" (hora local) */
 export function formatearFechaHora(fechaIso) {
     return new Date(fechaIso).toLocaleString('es-MX', { dateStyle: 'full', timeStyle: 'short' });

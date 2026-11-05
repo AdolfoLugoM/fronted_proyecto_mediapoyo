@@ -4,7 +4,7 @@
 //
 // Cada médico ve y maneja SOLO su propia agenda.
 // Una cita pertenece a un médico y a un paciente suyo.
-// "Eliminar" no borra el registro: lo marca como cancelado (así queda constancia de que existió).
+// "Eliminar" quita la cita de la tabla Citas.
 
 import { obtenerMedicoActual } from './sesionServicio.js';
 import { buscarPacientePorCurp, resumenPacientes } from './pacientesServicio.js';
@@ -47,7 +47,9 @@ function finDe(inicio) {
     return fechaHoraLocal(new Date(new Date(inicio).getTime() + DURACION_CITA_MIN * 60000));
 }
 
-const activa = (cita) => cita.estado !== 'cancelada';
+// La tabla Citas guarda FechaCita y HoraCita por separado; aquí se juntan para comparar y calcular.
+const inicioDe = (cita) => `${cita.fechaCita}T${cita.horaCita}`;
+
 const yaPaso = (inicio) => new Date(inicio) < new Date();
 
 const error = (codigo, message) => ({ success: false, codigo, message });
@@ -80,10 +82,9 @@ function seEmpalma(lista, medicoId, inicio, excluirId = null) {
     const duracion = DURACION_CITA_MIN * 60000;
 
     return lista.some(c =>
-        activa(c) &&
         c.medicoId === medicoId &&
         c.id !== excluirId &&
-        Math.abs(new Date(c.inicio).getTime() - nuevo) < duracion
+        Math.abs(new Date(inicioDe(c)).getTime() - nuevo) < duracion
     );
 }
 
@@ -94,7 +95,7 @@ async function buscarCitaPropia(id) {
     
     const lista = await cargarJSON();
     const cita = lista.find(c => c.id === Number(id));
-    if (!cita || !activa(cita) || cita.medicoId !== medico.id) return { problema: NO_ENCONTRADA };
+    if (!cita || cita.medicoId !== medico.id) return { problema: NO_ENCONTRADA };
     
     return { medico, lista, cita };
 }
@@ -124,18 +125,17 @@ export async function obtenerCitas({ desde, hasta } = {}) {
     const hastaLocal = hasta?.slice(0, 19);
     
     const visibles = (await cargarJSON()).filter(c =>
-        activa(c) &&
         c.medicoId === medico.id &&
-        (!desdeLocal || c.inicio >= desdeLocal) &&
-        (!hastaLocal || c.inicio < hastaLocal)
+        (!desdeLocal || inicioDe(c) >= desdeLocal) &&
+        (!hastaLocal || inicioDe(c) < hastaLocal)
     );
     
     const pacientes = await resumenPacientes(visibles.map(c => c.pacienteId));
     
     return visibles.map(c => ({
         id: c.id,
-        inicio: c.inicio,
-        fin: finDe(c.inicio),
+        inicio: inicioDe(c),
+        fin: finDe(inicioDe(c)),
         paciente: pacientes.get(c.pacienteId) ?? null
     }));
 }
@@ -178,10 +178,10 @@ export async function crearCita({ fecha, hora, curp }) {
     
     const nueva = {
         id: Math.max(0, ...lista.map(c => c.id)) + 1,
-        inicio,
+        fechaCita: fecha,
+        horaCita: `${hora}:00`,
         pacienteId: paciente.id,
-        medicoId: medico.id,
-        estado: 'agendada'
+        medicoId: medico.id
     };
     lista.push(nueva);
     registrarAuditoria('agendar_cita', { medicoId: medico.id, citaId: nueva.id, pacienteId: paciente.id });
@@ -207,26 +207,27 @@ export async function actualizarCita(id, { fecha, hora }) {
     const { problema: sinCita, medico, lista, cita } = await buscarCitaPropia(id);
     if (sinCita) return sinCita;
     
-    if (yaPaso(cita.inicio)) return error('CITA_PASADA', 'Esta cita ya pasó: no se puede cambiar.');
+    if (yaPaso(inicioDe(cita))) return error('CITA_PASADA', 'Esta cita ya pasó: no se puede cambiar.');
     
     const problema = validarHorario(fecha, hora);
     if (problema) return problema;
     
     const inicio = `${fecha}T${hora}:00`;
-    if (inicio === cita.inicio) return { success: true };     // no cambió nada
+    if (inicio === inicioDe(cita)) return { success: true };     // no cambió nada
     
     if (seEmpalma(lista, cita.medicoId, inicio, cita.id)) {
         return error('HORARIO_OCUPADO', 'Ya hay una cita en ese horario. Elige otra hora.');
     }
     
-    const anterior = cita.inicio;
-    cita.inicio = inicio;
+    const anterior = inicioDe(cita);
+    cita.fechaCita = fecha;
+    cita.horaCita = `${hora}:00`;
     registrarAuditoria('reprogramar_cita', { medicoId: medico.id, citaId: cita.id, de: anterior, a: inicio });
     return { success: true };
 }
 
 /**
-* "Elimina" una cita MÍA que todavía no ha pasado: la marca como cancelada
+* Elimina una cita MÍA que todavía no ha pasado: la quita de la lista
 * y deja de aparecer en el calendario. Responde { success: true } o { success: false, codigo, message }.
 */
 export async function eliminarCita(id) {
@@ -237,12 +238,12 @@ export async function eliminarCita(id) {
     
     await esperar(300);
     
-    const { problema, medico, cita } = await buscarCitaPropia(id);
+    const { problema, medico, lista, cita } = await buscarCitaPropia(id);
     if (problema) return problema;
     
-    if (yaPaso(cita.inicio)) return error('CITA_PASADA', 'Esta cita ya pasó: no se puede eliminar.');
+    if (yaPaso(inicioDe(cita))) return error('CITA_PASADA', 'Esta cita ya pasó: no se puede eliminar.');
     
-    cita.estado = 'cancelada';
+    lista.splice(lista.indexOf(cita), 1);
     registrarAuditoria('cancelar_cita', { medicoId: medico.id, citaId: cita.id });
     return { success: true };
 }

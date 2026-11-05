@@ -19,7 +19,7 @@
             <h2>Crear cuenta</h2>
             
             <!-- Al registrarse, lleva al login para iniciar sesión -->
-            <form id="formulario-registro" action="login.html">
+            <form id="formulario-registro">
                 
                 <div class="fila-campos">
                     <div class="campo">
@@ -32,16 +32,28 @@
                     </div>
                 </div>
                 
+                <label for="ciudad">Ciudad</label>
+                <input type="text" id="ciudad" name="ciudad" required maxlength="60" placeholder="Ejemplo: Monterrey" autocomplete="address-level2">
+
+                <label for="efirma">e.firma</label>
+                <input type="text" id="efirma" name="efirma" required inputmode="numeric" maxlength="20"
+                    pattern="[0-9]{20}" title="Número de certificado de la e.firma: 20 dígitos" placeholder="20 dígitos" autocomplete="off">
+                <span class="ayuda-campo">Número de certificado de tu e.firma (20 dígitos)</span>
+
                 <label for="usuario">Usuario</label>
-                <input type="text" id="usuario" name="usuario" required placeholder="nombre.apellido" autocomplete="username">
-                
+                <input type="text" id="usuario" name="usuario" required maxlength="30" pattern="\S{3,30}"
+                    title="De 3 a 30 caracteres, sin espacios" placeholder="nombre.apellido" autocomplete="username">
+
                 <label for="clave">Contraseña</label>
-                <input type="password" id="clave" name="clave" required minlength="8" placeholder="••••••••" autocomplete="new-password">
-                <span class="ayuda-campo">Mínimo 8 caracteres</span>
+                <input type="password" id="clave" name="clave" required minlength="8" pattern="(?=.*[A-Za-z])(?=.*\d).{8,}"
+                    title="Al menos 8 caracteres, con letras y números" placeholder="••••••••" autocomplete="new-password">
+                <span class="ayuda-campo">Mínimo 8 caracteres, con letras y números</span>
                 
                 <label for="confirmar-clave">Confirmar contraseña</label>
                 <input type="password" id="confirmar-clave" name="confirmar-clave" required placeholder="••••••••" autocomplete="new-password">
                 
+                <p id="registro-error" class="login-error" hidden></p>
+
                 <button type="submit" class="boton-ingresar">Registrarse</button>
             </form>
             
@@ -49,6 +61,6 @@
         </div>
     </main>
     
-    <script src="JS/interfaz/registrar.js"></script>
+    <script type="module" src="JS/interfaz/registrar.js"></script>
 </body>
 </html>

@@ -11,7 +11,7 @@ import { mostrarVista, marcarBoton } from './vistas.js';
 import { obtenerHistorial, desbloquearConsulta } from '../servicios/consultasServicio.js';
 import { abrirConsulta } from './consulta.js';
 import { mostrarAviso } from './avisos.js';
-import { calcularEdad, formatearFechaHora } from '../utilidades.js';
+import { calcularEdad, formatearFecha } from '../utilidades.js';
 
 const nombrePaciente = document.getElementById('historial-nombre');
 const detallePaciente = document.getElementById('historial-detalle');
@@ -83,10 +83,11 @@ function dibujarDetalle(cuerpo, detalle) {
     // Edad, peso y altura como etiquetas (la edad es la que tenía el día de la consulta)
     const medidas = crear('div', 'medidas-consulta');
     medidas.append(
-        crear('span', 'etiqueta-medida', `${detalle.edad} años`),
-        crear('span', 'etiqueta-medida', `${detalle.peso} kg`),
-        crear('span', 'etiqueta-medida', `${detalle.altura} cm`)
+        crear('span', 'etiqueta-medida', `${detalle.edad} años`)
     );
+    // Peso y altura son opcionales: solo se muestran si se capturaron
+    if (detalle.peso != null) medidas.append(crear('span', 'etiqueta-medida', `${detalle.peso} kg`));
+    if (detalle.altura != null) medidas.append(crear('span', 'etiqueta-medida', `${detalle.altura} cm`));
 
     const partes = [enfermedad, medidas];
 
@@ -106,7 +107,7 @@ function crearTarjeta(consulta) {
     const cabecera = crear('div', 'consulta-cabecera');
     const datos = crear('div');
 
-    const fecha = crear('time', 'consulta-fecha', formatearFechaHora(consulta.fecha));
+    const fecha = crear('time', 'consulta-fecha', formatearFecha(consulta.fecha));
     fecha.dateTime = consulta.fecha;
 
     datos.append(fecha, crear('span', 'consulta-medico', `Atendió: ${consulta.medico.nombre}`));

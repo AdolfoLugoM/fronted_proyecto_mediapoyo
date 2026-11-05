@@ -9,7 +9,7 @@ const lista = document.getElementById('lista-enfermedades');
 const detalle = document.getElementById('detalle-enfermedad');
 
 let enfermedades = [];                 // [ { id, nombre, descripcion, sintomaIds } ]
-let sintomasPorId = new Map();         // id -> { id, nombre, categoria }
+let sintomasPorId = new Map();         // id -> { id, nombre }
 let seleccionadaId = null;
 let cargado = false;
 

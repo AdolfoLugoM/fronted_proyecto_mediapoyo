@@ -1,13 +1,15 @@
 {
     "meta": {
         "simulado": true,
-        "descripcion": "Médicos ficticios para pruebas. Las contraseñas están en texto plano SOLO porque es una simulación: en PostgreSQL se guarda el hash (bcrypt)."
+        "descripcion": "Médicos ficticios para pruebas (tabla Medicos: MedicoID, Nombre, Apellidos, Ciudad, EFirma, NombreDeUsuario, Password). usuario y clave son NombreDeUsuario y Password. EFirma es el número de certificado de la e.firma (20 dígitos). Las contraseñas están en texto plano SOLO porque es una simulación: en PostgreSQL se guarda el hash (bcrypt)."
     },
     "medicos": [
         {
             "id": 1,
             "nombre": "Elena",
             "apellidos": "Prado Ríos",
+            "ciudad": "Monterrey",
+            "eFirma": "30001000000500000001",
             "usuario": "elena.prado",
             "clave": "Elena2026!"
         },
@@ -15,6 +17,8 @@
             "id": 2,
             "nombre": "Samuel",
             "apellidos": "Quiroz Lara",
+            "ciudad": "Guadalajara",
+            "eFirma": "30001000000500000002",
             "usuario": "samuel.quiroz",
             "clave": "Samuel2026!"
         },
@@ -22,6 +26,8 @@
             "id": 3,
             "nombre": "Mariana",
             "apellidos": "Ochoa Vela",
+            "ciudad": "Ciudad de México",
+            "eFirma": "30001000000500000003",
             "usuario": "mariana.ochoa",
             "clave": "Mariana2026!"
         },
@@ -29,6 +35,8 @@
             "id": 4,
             "nombre": "Hugo",
             "apellidos": "Cervantes Mora",
+            "ciudad": "Puebla",
+            "eFirma": "30001000000500000004",
             "usuario": "hugo.cervantes",
             "clave": "Hugo2026!"
         }

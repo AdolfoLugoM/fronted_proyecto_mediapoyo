@@ -24,7 +24,6 @@ const CAMPOS = {
     nacimiento: 'fechaNacimiento',
     sexo: 'sexo',
     telefono: 'telefono',
-    correo: 'correo',
     'tipo-sangre': 'tipoSangre',
     notas: 'notas'
 };
@@ -62,7 +61,7 @@ function leerFormulario() {
 function obtenerCambios(original, editado) {
     const cambios = {};
     for (const propiedad of Object.values(CAMPOS)) {
-        if ((original[propiedad] ?? '') !== editado[propiedad]) cambios[propiedad] = editado[propiedad];
+        if (String(original[propiedad] ?? '') !== editado[propiedad]) cambios[propiedad] = editado[propiedad];
     }
     return cambios;
 }

@@ -1,6 +1,6 @@
 // Formulario de consulta: se abre solo, justo después de guardar un paciente nuevo
 // (o desde la tabla de resultados y el historial).
-// Se guarda: enfermedad (opcional), peso, altura y notas. La edad, la fecha y la llave las pone el servicio.
+// Se guarda: enfermedad (obligatoria), peso, altura y notas (estos tres opcionales). La edad, la fecha y la llave las pone el servicio.
 // Los síntomas NO se guardan en la consulta: sirven para sugerir la enfermedad (tabla EnfermedadesDetalle).
 // Se buscan escribiendo, se elige uno de la lista y se presiona "Añadir"; con cada síntoma añadido
 // se actualizan las enfermedades sugeridas, y al hacer clic en una queda elegida en el cuadro de Enfermedad.
@@ -36,13 +36,13 @@ const btnCancelar = document.getElementById('btn-cancelar-consulta');
 let pacienteActual = null;
 let destinoGuardar = irAlInicio;      // a dónde se vuelve al guardar la consulta
 let destinoCancelar = irAlInicio;     // a dónde se vuelve al cancelar
-let catalogo = [];                    // [ { id, nombre, categoria } ]
+let catalogo = [];                    // [ { id, nombre } ]
 let catalogoCargado = false;
 let cargandoCatalogo = false;
 let enfermedadesCargadas = false;
 let cargandoEnfermedades = false;
 let enfermedades = [];                // [ { id, nombre, descripcion } ]
-let enfermedadElegida = null;         // la elegida de la lista (null = sin diagnóstico)
+let enfermedadElegida = null;         // la elegida de la lista (null = todavía ninguna)
 let enfermedadesCoincidentes = [];    // coincidencias que se muestran ahora
 let indiceEnfermedad = -1;            // opción resaltada con las flechas
 let numeroSugerencia = 0;             // descarta sugerencias viejas si se añaden síntomas muy rápido
@@ -95,7 +95,7 @@ async function cargarEnfermedades() {
     } catch (error) {
         console.error('Error al cargar las enfermedades:', error);
         buscadorEnfermedad.placeholder = 'No se pudo cargar el catálogo de enfermedades';
-        mostrarAviso('No se pudo cargar el catálogo de enfermedades. Aún puedes guardar la consulta sin diagnóstico.', 'error');
+        mostrarAviso('No se pudo cargar el catálogo de enfermedades. Sin el catálogo no se puede guardar la consulta.', 'error');
     } finally {
         cargandoEnfermedades = false;
     }
@@ -155,10 +155,7 @@ function dibujarSugerencias() {
             const nombre = document.createElement('span');
             nombre.textContent = sintoma.nombre;
 
-            const categoria = document.createElement('small');
-            categoria.textContent = sintoma.categoria;
-
-            opcion.append(nombre, categoria);
+            opcion.append(nombre);
             listaSugerencias.appendChild(opcion);
         });
     }
@@ -272,7 +269,7 @@ function actualizarEstadoEnfermedad() {
     } else if (buscadorEnfermedad.value.trim() !== '') {
         estadoEnfermedad.textContent = 'Elige una enfermedad de la lista';
     } else {
-        estadoEnfermedad.textContent = 'Sin diagnóstico (revisión)';
+        estadoEnfermedad.textContent = 'Elige una enfermedad de la lista';
     }
 }
 
@@ -589,12 +586,12 @@ formulario?.addEventListener('submit', async (evento) => {
     // Limpia espacios al inicio y al final (el buscador de síntomas no se guarda, pero tampoco estorba)
     formulario.querySelectorAll('textarea').forEach(campo => { campo.value = campo.value.trim(); });
 
-    // Peso y altura son obligatorios y tienen min/max en el HTML
+    // Peso y altura son opcionales; si se escriben, el HTML revisa min/max
     if (!formulario.reportValidity()) return;
 
-    // Si escribió algo en Enfermedad pero no eligió ninguna de la lista, no se adivina cuál quiso decir
-    if (buscadorEnfermedad.value.trim() !== '' && !enfermedadElegida) {
-        mostrarAviso('Elige una enfermedad de la lista o borra el campo para guardar sin diagnóstico.', 'error');
+    // La enfermedad es obligatoria y debe ser una de la lista: no se adivina cuál quiso decir
+    if (!enfermedadElegida) {
+        mostrarAviso('Elige una enfermedad de la lista para guardar la consulta.', 'error');
         buscadorEnfermedad.focus();
         return;
     }
@@ -607,9 +604,9 @@ formulario?.addEventListener('submit', async (evento) => {
     try {
         const resultado = await crearConsulta({
             pacienteId: pacienteActual.id,
-            enfermedadId: enfermedadElegida ? enfermedadElegida.id : null,
-            peso: Number(datos.peso),
-            altura: Number(datos.altura),
+            enfermedadId: enfermedadElegida.id,
+            peso: datos.peso === '' ? null : Number(datos.peso),
+            altura: datos.altura === '' ? null : Number(datos.altura),
             notas: datos.notas
         });
 
