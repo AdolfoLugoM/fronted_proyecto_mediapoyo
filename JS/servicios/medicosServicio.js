@@ -9,7 +9,6 @@ const URL_JSON = 'JSON/medicos.json';     // ruta relativa a index.html y a logi
 const URL_API = '/api/medicos';
 
 // Lo único que un médico puede cambiar de su perfil desde la app.
-// La contraseña tiene su propio proceso (cambiarClave en sesionServicio.js).
 
 const CAMPOS_EDITABLES = ['nombre', 'apellidos'];
 
@@ -46,19 +45,6 @@ export async function obtenerMedico(id) {
     }
     
     return (await cargarJSON()).find(m => m.id === Number(id)) ?? null;
-}
-
-/**
-* SOLO SIMULACIÓN: cambia la contraseña en la lista en memoria (hasta recargar la página).
-* La verificación de la contraseña actual la hace cambiarClave() de sesionServicio.js.
-* Con la API, el servidor guarda el hash de la nueva, nunca el texto.
-*/
-export async function actualizarClaveMedico(id, clave) {
-    const medico = (await cargarJSON()).find(m => m.id === Number(id));
-    if (!medico) return null;
-    
-    medico.clave = clave;
-    return medico;
 }
 
 /**

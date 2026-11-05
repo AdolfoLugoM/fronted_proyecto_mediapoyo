@@ -1,7 +1,6 @@
 // Perfil del médico en sesión:
 //  - su nombre completo aparece dentro del sidebar
 //  - el botón del sidebar abre el modal para editar el perfil (solo "Cancelar" y "Guardar")
-//  - desde ese modal se llega a cambiar la contraseña (ver seguridadCuenta.js)
 
 import { obtenerMedicoActual, actualizarPerfil } from '../servicios/sesionServicio.js';
 import { mostrarAviso } from './avisos.js';
@@ -42,29 +41,26 @@ function bloquear(estado) {
     btnGuardar.textContent = estado ? 'Guardando...' : 'Guardar';
 }
 
-// Exportadas para que el modal de contraseña pueda cerrar el perfil y regresar a él.
-// conservarFoco: al regresar de otro modal, el foco debe volver al botón que abrió el perfil al principio.
-export function abrirPerfil({ conservarFoco = false } = {}) {
+function abrirPerfil() {
     if (!medicoActual) {
         mostrarAviso('No hay una sesión activa. Vuelve a iniciar sesión.', 'error');
         return;
     }
     if (!modal) return;
-    
-    if (!conservarFoco) focoAnterior = document.activeElement;
+
+    focoAnterior = document.activeElement;
     for (const campo of CAMPOS) {
         formulario.elements[campo].value = medicoActual[campo] ?? '';
     }
-    
+
     modal.classList.add('activo');
     formulario.elements.nombre.focus();
 }
 
-// restaurarFoco: false cuando se pasa a otro modal (el foco se va a ese modal, no al botón del inicio)
-export function cerrarPerfil({ restaurarFoco = true } = {}) {
+function cerrarPerfil() {
     if (guardando) return;                     // no se cierra a media actualización
     modal?.classList.remove('activo');
-    if (restaurarFoco) focoAnterior?.focus?.();
+    focoAnterior?.focus?.();                   // el foco regresa al botón con el que se abrió
 }
 
 botonSidebar?.addEventListener('click', () => abrirPerfil());

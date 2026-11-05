@@ -13,4 +13,3 @@ import './interfaz/gestionCitas.js';
 
 import './interfaz/graficas.js';
 import './interfaz/perfil.js';
-import './interfaz/seguridadCuenta.js';

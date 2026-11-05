@@ -5,7 +5,7 @@
 // vive en una cookie de sesión que el navegador no puede modificar (HttpOnly), y el servidor compara la
 // contraseña contra el hash guardado y decide, en cada petición, qué puede hacer cada médico.
 
-import { obtenerMedicos, obtenerMedico, actualizarMedico, actualizarClaveMedico } from './medicosServicio.js';
+import { obtenerMedicos, obtenerMedico, actualizarMedico } from './medicosServicio.js';
 
 const USAR_API = false;
 const URL_API = '/api/sesion';
@@ -95,49 +95,6 @@ export async function actualizarPerfil(cambios) {
     }
     
     return { success: true, medico: publico(medico) };
-}
-
-const SIN_SESION = { success: false, codigo: 'SIN_SESION', message: 'Tu sesión terminó. Vuelve a iniciar sesión.' };
-const MIN_CLAVE = 8;
-
-// Envía el cambio de contraseña al servidor con la misma forma de respuesta
-async function enviarCambioCuenta(ruta, cuerpo) {
-    const respuesta = await fetch(`${URL_API}/${ruta}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cuerpo)
-    });
-    if (respuesta.status === 401) return SIN_SESION;
-    return respuesta.json();
-}
-
-/**
-* Cambia la contraseña del médico en sesión. Basta con tener la sesión iniciada.
-* Responde { success: true } o { success: false, codigo, message, campo? }.
-* Con el servidor real: tomar al médico de la cookie de sesión, guardar la nueva con hash (bcrypt/argon2)
-* y cerrar las demás sesiones abiertas de ese médico.
-*/
-export async function cambiarClave(claveNueva) {
-    if (USAR_API) return enviarCambioCuenta('clave', { claveNueva });
-    
-    await esperar(300);
-    
-    const id = sessionStorage.getItem(CLAVE_ALMACEN);
-    if (!id) return SIN_SESION;
-    
-    if (!claveNueva || claveNueva.length < MIN_CLAVE) {
-        return { success: false, codigo: 'CLAVE_CORTA', message: `La contraseña nueva debe tener al menos ${MIN_CLAVE} caracteres.`, campo: 'clave-nueva' };
-    }
-    
-    const yo = await obtenerMedico(id);
-    if (!yo) return SIN_SESION;
-    
-    if (yo.clave === claveNueva) {
-        return { success: false, codigo: 'MISMA_CLAVE', message: 'La contraseña nueva debe ser distinta de la actual.', campo: 'clave-nueva' };
-    }
-    
-    await actualizarClaveMedico(yo.id, claveNueva);
-    return { success: true };
 }
 
 /** Cierra la sesión. */

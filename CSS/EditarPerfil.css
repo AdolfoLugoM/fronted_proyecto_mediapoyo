@@ -1,4 +1,4 @@
-/* ========================================================================== EDITAR PERFIL DEL MÉDICO: modal con nombre y especialidad ========================================================================== */
+/* ========================================================================== EDITAR PERFIL DEL MÉDICO: modal con nombre y apellidos ========================================================================== */
 
 /* Reutiliza .modal-overlay-logout, .modal-box-logout y .tarjeta-formulario (igual que editar paciente);
    este formulario es corto, así que el modal es más angosto */
@@ -20,42 +20,4 @@
 
 .modal-editar-perfil .acciones-formulario {
     margin-top: 20px;
-}
-
-/* Texto de ayuda bajo un campo ("Mínimo 8 caracteres") */
-.modal-editar-perfil .ayuda-campo {
-    display: block;
-    margin-top: 4px;
-    font-size: 0.8rem;
-    color: var(--color-placeholder);
-}
-
-/* ===== ENLACES "Cambiar contraseña" dentro del modal de perfil ===== */
-.enlaces-cuenta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 20px;
-    margin-top: 18px;
-    padding-top: 14px;
-    border-top: 1px solid var(--color-borde);
-}
-
-.enlace-cuenta {
-    padding: 0;
-    background: none;
-    border: none;
-    color: var(--color-acento);
-    font: inherit;
-    font-size: 0.9rem;
-    cursor: pointer;
-}
-
-.enlace-cuenta:hover {
-    text-decoration: underline;
-}
-
-.enlace-cuenta:focus-visible {
-    outline: 2px solid var(--color-acento);
-    outline-offset: 3px;
-    border-radius: 4px;
 }
