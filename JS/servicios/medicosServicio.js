@@ -1,19 +1,19 @@
 // Capa de acceso a datos de los médicos.
-// HOY lee datos/medicos.json; MAÑANA llama a la API (USAR_API = true).
+// SOLO SIMULACIÓN (USAR_API = false en config.js): lee JSON/medicos.json.
+// Con el backend (USAR_API = true) este archivo no se usa: el inicio de sesión, el perfil y el registro van
+// por sesionServicio.js y api.js (/auth/...). Nadie llama aquí a la API.
 
 // En la base de datos: tabla "Medicos" (MedicoID, Nombre, Apellidos, Ciudad, EFirma, NombreDeUsuario, Password con hash).
 // La contraseña y la e-firma nunca deben viajar al navegador.
 
-const USAR_API = false;
 const URL_JSON = 'JSON/medicos.json';     // ruta relativa a index.html y a login.html
-const URL_API = '/api/medicos';
 
 // Lo único que un médico puede cambiar de su perfil desde la app.
 
 const CAMPOS_EDITABLES = ['nombre', 'apellidos', 'ciudad'];
 
 // SOLO SIMULACIÓN: los médicos que se registran en esta pestaña viven en sessionStorage (un JSON estático
-// no se puede escribir desde el navegador). Con la API real, el servidor los guarda en la tabla Medicos.
+// no se puede escribir desde el navegador). Con el backend, el servidor los guarda en la tabla Medicos.
 const CLAVE_REGISTRADOS = 'medicosRegistrados';
 
 let cacheMedicos = null;
@@ -64,15 +64,6 @@ const invalido = (campo, message) => ({ success: false, codigo: 'DATO_INVALIDO',
 * (8 caracteres o más, con letras y números); e-firma válida (20 dígitos).
 */
 export async function crearMedico(datos) {
-    if (USAR_API) {
-        const respuesta = await fetch(URL_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datos)
-        });
-        return respuesta.json();
-    }
-
     await esperar(300);
 
     for (const campo of ['nombre', 'apellidos', 'ciudad']) {
@@ -111,24 +102,11 @@ export async function crearMedico(datos) {
 
 /** Lista de médicos. (Con el JSON también trae el usuario y la contraseña, que solo usa la simulación del inicio de sesión.) */
 export async function obtenerMedicos() {
-    if (USAR_API) {
-        const respuesta = await fetch(URL_API);
-        if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
-        return respuesta.json();
-    }
-    
     return cargarJSON();
 }
 
 /** Un médico por su id, o null si no existe. */
 export async function obtenerMedico(id) {
-    if (USAR_API) {
-        const respuesta = await fetch(`${URL_API}/${encodeURIComponent(id)}`);
-        if (respuesta.status === 404) return null;
-        if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
-        return respuesta.json();
-    }
-    
     return (await cargarJSON()).find(m => m.id === Number(id)) ?? null;
 }
 
