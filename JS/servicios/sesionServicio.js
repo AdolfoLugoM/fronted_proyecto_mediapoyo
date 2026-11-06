@@ -82,18 +82,19 @@ export async function obtenerMedicoActual() {
 
 /**
 * Actualiza el perfil del médico EN SESIÓN (nunca el de otro: no recibe id).
-* Recibe solo los campos que cambiaron: { nombre?, apellidos? }.
+* Recibe solo los campos que cambiaron: { nombre?, apellidos?, ciudad? }.
 * Responde { success: true, medico } o { success: false, codigo, message }.
-* Con la API real, el servidor toma el id de la cookie de sesión, no de lo que mande el navegador.
+* Con el backend, el servidor toma el id del token de sesión, no de lo que mande el navegador.
 */
 export async function actualizarPerfil(cambios) {
     if (USAR_API) {
-        // El backend todavía no tiene un endpoint para cambiar el perfil (solo GET /auth/me).
-        return {
-            success: false,
-            codigo: 'NO_DISPONIBLE',
-            message: 'Por ahora el servidor no permite cambiar el perfil.'
-        };
+        // PATCH /auth/me: el servidor toma el id del token y solo cambia los campos que se envían
+        const resp = await pedir('/auth/me', { metodo: 'PATCH', cuerpo: cambios });
+
+        if (!resp.ok) return falla(resp, 'No se pudo guardar el perfil.');
+
+        medicoEnMemoria = { id: resp.datos.id, nombre: resp.datos.nombre, apellidos: resp.datos.apellidos, ciudad: resp.datos.ciudad };
+        return { success: true, medico: medicoEnMemoria };
     }
     
     await esperar(300);

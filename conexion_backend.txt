@@ -71,7 +71,7 @@ Diferencias con el diseño original (decisiones tomadas para no cambiar el backe
 
 Cosas que el backend todavía no ofrece (y por eso no funcionan o se ven distinto)
 ---------------------------------------------------------------------------------
-- Editar el perfil del médico (nombre y apellidos): no hay endpoint. El botón muestra un aviso.
+- (Resuelto) Editar el perfil del médico: ahora usa PATCH /auth/me (nombre, apellidos y ciudad).
 - Nombre de otros médicos: en una consulta abierta con llave se muestra "Otro médico" (el backend solo da su id).
 - Búsqueda de pacientes sin acentos: el backend distingue acentos, así que el frontend pide al servidor los
   pacientes que contienen las consonantes escritas y afina aquí (JS/servicios/pacientesServicio.js). Revisa hasta
