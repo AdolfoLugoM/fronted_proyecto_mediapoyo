@@ -1,6 +1,6 @@
 // Formulario de consulta: se abre solo, justo después de guardar un paciente nuevo
 // (o desde la tabla de resultados y el historial).
-// Se guarda: enfermedad (obligatoria), peso, altura y notas (estos tres opcionales). La edad, la fecha y la llave las pone el servicio.
+// Se guarda: enfermedad (obligatoria con el backend), peso y altura (opcionales) y notas. La edad, la fecha y la llave las pone el servicio.
 // Los síntomas NO se guardan en la consulta: sirven para sugerir la enfermedad (tabla EnfermedadesDetalle).
 // Se buscan escribiendo, se elige uno de la lista y se presiona "Añadir"; con cada síntoma añadido
 // se actualizan las enfermedades sugeridas, y al hacer clic en una queda elegida en el cuadro de Enfermedad.
@@ -12,6 +12,7 @@ import { obtenerSintomas } from '../servicios/sintomasServicio.js';
 import { obtenerEnfermedades, sugerirEnfermedades } from '../servicios/enfermedadesServicio.js';
 import { mostrarAviso } from './avisos.js';
 import { calcularEdad } from '../utilidades.js';
+import { USAR_API } from '../config.js';
 
 const MAX_SUGERENCIAS = 8;
 
@@ -36,13 +37,13 @@ const btnCancelar = document.getElementById('btn-cancelar-consulta');
 let pacienteActual = null;
 let destinoGuardar = irAlInicio;      // a dónde se vuelve al guardar la consulta
 let destinoCancelar = irAlInicio;     // a dónde se vuelve al cancelar
-let catalogo = [];                    // [ { id, nombre } ]
+let catalogo = [];                    // [ { id, nombre, categoria } ]
 let catalogoCargado = false;
 let cargandoCatalogo = false;
 let enfermedadesCargadas = false;
 let cargandoEnfermedades = false;
 let enfermedades = [];                // [ { id, nombre, descripcion } ]
-let enfermedadElegida = null;         // la elegida de la lista (null = todavía ninguna)
+let enfermedadElegida = null;         // la elegida de la lista (null = sin diagnóstico)
 let enfermedadesCoincidentes = [];    // coincidencias que se muestran ahora
 let indiceEnfermedad = -1;            // opción resaltada con las flechas
 let numeroSugerencia = 0;             // descarta sugerencias viejas si se añaden síntomas muy rápido
@@ -95,7 +96,9 @@ async function cargarEnfermedades() {
     } catch (error) {
         console.error('Error al cargar las enfermedades:', error);
         buscadorEnfermedad.placeholder = 'No se pudo cargar el catálogo de enfermedades';
-        mostrarAviso('No se pudo cargar el catálogo de enfermedades. Sin el catálogo no se puede guardar la consulta.', 'error');
+        mostrarAviso(USAR_API
+            ? 'No se pudo cargar el catálogo de enfermedades. Cierra la consulta e inténtalo de nuevo: no se puede guardar sin elegir la enfermedad.'
+            : 'No se pudo cargar el catálogo de enfermedades. Aún puedes guardar la consulta sin diagnóstico.', 'error');
     } finally {
         cargandoEnfermedades = false;
     }
@@ -156,6 +159,11 @@ function dibujarSugerencias() {
             nombre.textContent = sintoma.nombre;
 
             opcion.append(nombre);
+            if (sintoma.categoria) {                   // el catálogo del backend no trae categorías
+                const categoria = document.createElement('small');
+                categoria.textContent = sintoma.categoria;
+                opcion.append(categoria);
+            }
             listaSugerencias.appendChild(opcion);
         });
     }
@@ -269,7 +277,7 @@ function actualizarEstadoEnfermedad() {
     } else if (buscadorEnfermedad.value.trim() !== '') {
         estadoEnfermedad.textContent = 'Elige una enfermedad de la lista';
     } else {
-        estadoEnfermedad.textContent = 'Elige una enfermedad de la lista';
+        estadoEnfermedad.textContent = USAR_API ? 'Elige la enfermedad del diagnóstico' : 'Sin diagnóstico (revisión)';
     }
 }
 
@@ -344,18 +352,26 @@ async function dibujarEnfermedadesSugeridas() {
     }
 
     let sugeridas = [];
+    let fallo = false;
     try {
         sugeridas = await sugerirEnfermedades([...elegidos.keys()]);
     } catch (error) {
         console.error('Error al sugerir enfermedades:', error);
+        fallo = true;
     }
     if (miSugerencia !== numeroSugerencia) return;     // ya hay una petición más nueva
 
     const titulo = document.createElement('p');
     titulo.className = 'sugeridas-titulo';
-    titulo.textContent = sugeridas.length === 0
-        ? 'Ninguna enfermedad del catálogo tiene estos síntomas. Elígela en la lista si la conoces.'
-        : 'Enfermedades con estos síntomas (haz clic para elegirla):';
+    if (fallo) {
+        titulo.textContent = 'No se pudieron obtener sugerencias (el modelo no está disponible). Elige la enfermedad en la lista.';
+    } else if (sugeridas.length === 0) {
+        titulo.textContent = 'Ninguna enfermedad del catálogo tiene estos síntomas. Elígela en la lista si la conoces.';
+    } else if (USAR_API) {
+        titulo.textContent = 'Enfermedades más probables según el modelo. Es orientativo, no un diagnóstico: haz clic para elegirla.';
+    } else {
+        titulo.textContent = 'Enfermedades con estos síntomas (haz clic para elegirla):';
+    }
 
     const botones = sugeridas.map(e => {
         const boton = document.createElement('button');
@@ -363,8 +379,15 @@ async function dibujarEnfermedadesSugeridas() {
         boton.className = 'chip-enfermedad';
         boton.dataset.id = e.id;
         boton.setAttribute('aria-pressed', String(enfermedadElegida?.id === e.id));
-        boton.textContent = `${e.nombre} · ${e.coincidencias} de ${e.total}`;
-        boton.title = `Tiene ${e.coincidencias} de los ${e.total} síntomas registrados de ${e.nombre}`;
+        if (e.probabilidad != null) {
+            // Estimación del modelo de aprendizaje (0 a 1), no una certeza
+            const porcentaje = e.probabilidad < 0.01 ? '<1%' : `${Math.round(e.probabilidad * 100)}%`;
+            boton.textContent = `${e.nombre} · ${porcentaje}`;
+            boton.title = `El modelo estima ${porcentaje} de probabilidad para ${e.nombre}. Es orientativo.`;
+        } else {
+            boton.textContent = `${e.nombre} · ${e.coincidencias} de ${e.total}`;
+            boton.title = `Tiene ${e.coincidencias} de los ${e.total} síntomas registrados de ${e.nombre}`;
+        }
         boton.addEventListener('click', () => {
             elegirEnfermedad(enfermedades.find(x => x.id === e.id) ?? { id: e.id, nombre: e.nombre });
         });
@@ -586,12 +609,21 @@ formulario?.addEventListener('submit', async (evento) => {
     // Limpia espacios al inicio y al final (el buscador de síntomas no se guarda, pero tampoco estorba)
     formulario.querySelectorAll('textarea').forEach(campo => { campo.value = campo.value.trim(); });
 
-    // Peso y altura son opcionales; si se escriben, el HTML revisa min/max
+    // Peso y altura son opcionales (la base admite vacío); si se escriben, el HTML revisa min/max
     if (!formulario.reportValidity()) return;
 
-    // La enfermedad es obligatoria y debe ser una de la lista: no se adivina cuál quiso decir
-    if (!enfermedadElegida) {
-        mostrarAviso('Elige una enfermedad de la lista para guardar la consulta.', 'error');
+    // Si escribió algo en Enfermedad pero no eligió ninguna de la lista, no se adivina cuál quiso decir
+    if (buscadorEnfermedad.value.trim() !== '' && !enfermedadElegida) {
+        mostrarAviso(USAR_API
+            ? 'Elige una enfermedad de la lista.'
+            : 'Elige una enfermedad de la lista o borra el campo para guardar sin diagnóstico.', 'error');
+        buscadorEnfermedad.focus();
+        return;
+    }
+
+    // Con el backend, toda consulta lleva diagnóstico (la tabla Consultas no admite enfermedad vacía)
+    if (USAR_API && !enfermedadElegida) {
+        mostrarAviso('Elige la enfermedad del diagnóstico para guardar la consulta.', 'error');
         buscadorEnfermedad.focus();
         return;
     }
@@ -604,7 +636,7 @@ formulario?.addEventListener('submit', async (evento) => {
     try {
         const resultado = await crearConsulta({
             pacienteId: pacienteActual.id,
-            enfermedadId: enfermedadElegida.id,
+            enfermedadId: enfermedadElegida ? enfermedadElegida.id : null,
             peso: datos.peso === '' ? null : Number(datos.peso),
             altura: datos.altura === '' ? null : Number(datos.altura),
             notas: datos.notas

@@ -25,8 +25,8 @@ function leerPaciente() {
         curp: datos.curp,
         fechaNacimiento: datos.nacimiento,
         sexo: datos.sexo,                      // M (masculino) o F (femenino)
-        telefono: datos.telefono ? Number(datos.telefono) : null,   // NumeroTelefono es INT; vacío = null
-        tipoSangre: datos['tipo-sangre'] || null,   // "No definido" se guarda como null
+        telefono: datos.telefono,
+tipoSangre: datos['tipo-sangre'],
         notas: datos.notas ?? ''
     };
 }

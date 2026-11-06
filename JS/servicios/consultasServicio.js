@@ -1,8 +1,7 @@
 // Capa de acceso a datos de consultas.
 // HOY lee y guarda sobre JSON/historial.json (en memoria); MAÑANA llama a la API (USAR_API = true).
 //
-// Tabla Consultas: id, pacienteId, medicoId, enfermedadId, edad, peso (kg), altura (cm), fecha (DATE), llave, notas.
-// Peso, altura y notas son opcionales; lo demás es obligatorio.
+// Tabla Consultas: id, pacienteId, medicoId, enfermedadId, edad, peso (kg), altura (cm), fecha, llave, notas.
 //
 // Quién ve el detalle de una consulta (enfermedad, medidas y notas):
 //   1. El médico que la hizo: siempre, sin pedir nada.
@@ -10,6 +9,15 @@
 //      y se le entrega al paciente al terminarla). Desbloquea solo esa consulta.
 // Todo queda en la auditoría. Las notas del PACIENTE (alergias, enfermedades crónicas) NO pasan por aquí:
 // están en su ficha y siempre se ven, por seguridad.
+//
+// Con el backend (USAR_API = true):
+//   - El historial (GET /historial/{paciente}) trae SOLO las consultas del médico en sesión. Las de otros
+//     médicos no se listan ni se cuentan: se abren una por una con su llave (POST /consultas/acceso), y la
+//     consulta abierta se recuerda en memoria mientras la página siga abierta.
+//   - La altura se captura en centímetros, pero el servidor la guarda en metros: aquí se convierte.
+//   - Toda consulta debe tener enfermedad (diagnóstico): la tabla Consultas no admite null.
+//   - La edad, la fecha y la llave (8 caracteres) las pone el servidor.
+//   - La auditoría sigue siendo solo del navegador (consola): el servidor todavía no tiene tabla de auditoría.
 
 import { obtenerEnfermedades } from './enfermedadesServicio.js';
 import { obtenerMedicos } from './medicosServicio.js';
@@ -17,10 +25,10 @@ import { obtenerMedicoActual } from './sesionServicio.js';
 import { obtenerPaciente, esPacienteDelMedico } from './pacientesServicio.js';
 import { registrarAuditoria, fechaHoraLocal } from './auditoriaServicio.js';
 import { calcularEdad } from '../utilidades.js';
+import { USAR_API } from '../config.js';
+import { pedir, falla } from './api.js';
 
-const USAR_API = false;
 const URL_JSON = 'JSON/historial.json';      // ruta relativa a index.html
-const URL_API = '/api';                       // base de la API futura
 
 const LARGO_LLAVE = 8;
 const ALFABETO_LLAVE = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';   // sin O/0 ni I/1, que se confunden al dictar
@@ -63,6 +71,34 @@ function generarLlave() {
 // "q5kr-9mgu" y "Q5KR9MGU" cuentan como la misma llave
 const normalizarLlave = (texto) => String(texto ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
+// ----- Ayudantes para la API -----
+
+const LLAVE_INCORRECTA = () => ({
+    success: false, codigo: 'LLAVE_INCORRECTA', message: 'Ninguna consulta de este paciente tiene esa llave.'
+});
+
+// Consultas de otros médicos que se abrieron con su llave: pacienteId -> Map(consultaId -> consulta ya traducida)
+const abiertasConLlave = new Map();
+
+// Consulta del backend -> consulta que dibuja el historial
+function consultaDeApi(c, propia, nombreMedico) {
+    return {
+        id: c.id,
+        fecha: c.fecha_consulta,
+        propia,
+        llave: propia ? c.llave : null,
+        // El backend no entrega el nombre de otros médicos, solo su id
+        medico: { id: c.medico_id, nombre: propia ? nombreMedico : 'Otro médico' },
+        detalle: {
+            enfermedad: c.enfermedad ? { id: c.enfermedad.id, nombre: c.enfermedad.nombre } : null,
+            edad: c.edad,
+            peso: c.peso,
+            altura: c.altura == null ? null : Math.round(c.altura * 100),      // metros -> centímetros
+            notas: c.notas ?? ''
+        }
+    };
+}
+
 // ----- Funciones que usa la aplicación -----
 
 /**
@@ -76,8 +112,33 @@ const normalizarLlave = (texto) => String(texto ?? '').toUpperCase().replace(/[^
 */
 export async function obtenerHistorial(pacienteId) {
     if (USAR_API) {
-        const respuesta = await fetch(`${URL_API}/pacientes/${encodeURIComponent(pacienteId)}/consultas`);
-        return respuesta.json();
+        const id = Number(pacienteId);
+        const yo = await obtenerMedicoActual();
+        if (!yo) return sinSesion();
+
+        // El historial viene paginado: se piden todas las páginas
+        let paciente = null;
+        const propias = [];
+        for (let offset = 0; ; offset += 100) {
+            const resp = await pedir(`/historial/${id}`, { parametros: { limit: 100, offset } });
+            if (resp.estado === 404) return { success: false, codigo: 'NO_ENCONTRADO', message: 'No se encontró a este paciente.' };
+            if (!resp.ok) return falla(resp, 'No se pudo cargar el historial.');
+
+            paciente = resp.datos.paciente;
+            propias.push(...resp.datos.consultas.items);
+            if (resp.datos.consultas.items.length === 0 || propias.length >= resp.datos.consultas.total) break;
+        }
+
+        const nombre = `${yo.nombre} ${yo.apellidos}`;
+        const suyas = propias.map(c => consultaDeApi(c, true, nombre));
+        const ids = new Set(suyas.map(c => c.id));
+        const abiertas = [...(abiertasConLlave.get(id)?.values() ?? [])].filter(c => !ids.has(c.id));
+
+        registrarAuditoria('abrir_historial', { medicoId: yo.id, pacienteId: id });
+        return {
+            success: true,
+            consultas: [...suyas, ...abiertas].sort((a, b) => b.fecha.localeCompare(a.fecha))
+        };
     }
 
     await esperar(200);                        // simula la demora de una red real
@@ -103,7 +164,7 @@ export async function obtenerHistorial(pacienteId) {
         success: true,
         consultas: consultas
             .filter(c => c.pacienteId === id && (c.medicoId === medico.id || desbloqueadas.has(c.id)))
-            .sort((a, b) => b.fecha.localeCompare(a.fecha) || b.id - a.id)   // FechaConsulta es solo fecha: el folio desempata
+            .sort((a, b) => b.fecha.localeCompare(a.fecha))
             .map(c => {
                 const propia = c.medicoId === medico.id;
 
@@ -136,12 +197,40 @@ export async function obtenerHistorial(pacienteId) {
 */
 export async function desbloquearConsulta(pacienteId, llaveEscrita) {
     if (USAR_API) {
-        const respuesta = await fetch(`${URL_API}/pacientes/${encodeURIComponent(pacienteId)}/desbloquear`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ llave: llaveEscrita })        // en el cuerpo, nunca en la URL
-        });
-        return respuesta.json();
+        const id = Number(pacienteId);
+        const yo = await obtenerMedicoActual();
+        if (!yo) return sinSesion();
+
+        const buscada = normalizarLlave(llaveEscrita);
+        if (buscada.length !== LARGO_LLAVE) {
+            return { success: false, codigo: 'LLAVE_INVALIDA', message: `La llave tiene ${LARGO_LLAVE} caracteres.` };
+        }
+
+        // La llave va en el cuerpo, nunca en la URL. Tras 5 llaves incorrectas el servidor responde 429.
+        const resp = await pedir('/consultas/acceso', { metodo: 'POST', cuerpo: { llave: buscada } });
+        if (resp.estado === 404) {
+            registrarAuditoria('llave_incorrecta', { medicoId: yo.id, pacienteId: id });
+            return LLAVE_INCORRECTA();
+        }
+        if (!resp.ok) return falla(resp, 'No se pudo abrir la consulta.');
+
+        const consulta = resp.datos;
+
+        // La llave abre una consulta de CUALQUIER paciente; aquí solo vale si es de este. Si no, se descarta
+        // y se responde lo mismo que con una llave incorrecta.
+        if (consulta.paciente.id !== id) return LLAVE_INCORRECTA();
+
+        // Si la hizo él mismo, ya aparece en su historial
+        if (consulta.medico_id === yo.id) return { success: true, consultaId: consulta.id, yaVisible: true };
+
+        if (!abiertasConLlave.has(id)) abiertasConLlave.set(id, new Map());
+        const abiertas = abiertasConLlave.get(id);
+        const yaVisible = abiertas.has(consulta.id);
+
+        abiertas.set(consulta.id, consultaDeApi(consulta, false));
+        if (!yaVisible) registrarAuditoria('desbloquear_consulta', { medicoId: yo.id, pacienteId: id, consultaId: consulta.id });
+
+        return { success: true, consultaId: consulta.id, yaVisible };
     }
 
     await esperar(300);
@@ -184,12 +273,45 @@ export async function desbloquearConsulta(pacienteId, llaveEscrita) {
 */
 export async function crearConsulta(consulta) {
     if (USAR_API) {
-        const respuesta = await fetch(`${URL_API}/consultas`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(consulta)
+        // Peso y altura son opcionales (la base admite vacío); si vienen, se revisan
+        const vacio = (valor) => valor == null || valor === '';
+        const peso = vacio(consulta.peso) ? null : Number(consulta.peso);
+        if (peso !== null && !(peso >= PESO.min && peso <= PESO.max)) return datoInvalido('peso', `El peso debe estar entre ${PESO.min} y ${PESO.max} kg.`);
+
+        const altura = vacio(consulta.altura) ? null : Number(consulta.altura);
+        if (altura !== null && !(altura >= ALTURA.min && altura <= ALTURA.max)) return datoInvalido('altura', `La altura debe estar entre ${ALTURA.min} y ${ALTURA.max} cm.`);
+
+        if (consulta.enfermedadId == null || consulta.enfermedadId === '') {
+            return datoInvalido('enfermedad', 'Elige la enfermedad del diagnóstico: cada consulta debe tener uno.');
+        }
+
+        const resp = await pedir('/consultas', {
+            metodo: 'POST',
+            cuerpo: {
+                paciente_id: Number(consulta.pacienteId),
+                enfermedad_id: Number(consulta.enfermedadId),
+                peso: peso === null ? null : Number(peso.toFixed(2)),
+                altura: altura === null ? null : Number((altura / 100).toFixed(2)),            // el servidor guarda metros
+                notas: String(consulta.notas ?? '').trim() || null
+            }
         });
-        return respuesta.json();
+
+        if (resp.ok) {
+            const yo = await obtenerMedicoActual();
+            registrarAuditoria('crear_consulta', { medicoId: yo?.id, pacienteId: Number(consulta.pacienteId), consultaId: resp.datos.id });
+            return { success: true, id: resp.datos.id, llave: resp.datos.llave };
+        }
+
+        if (resp.estado === 404) {
+            const esEnfermedad = /enfermedad/i.test(String(resp.datos?.detail ?? ''));
+            return {
+                success: false,
+                codigo: 'NO_ENCONTRADO',
+                message: esEnfermedad ? 'Elige una enfermedad del catálogo.' : 'No se encontró a este paciente.',
+                ...(esEnfermedad ? { campo: 'enfermedad' } : {})
+            };
+        }
+        return falla(resp, 'No se pudo guardar la consulta.');
     }
 
     await esperar(300);
@@ -202,23 +324,18 @@ export async function crearConsulta(consulta) {
 
     // Mismas validaciones que hará el servidor (el formulario se puede saltar)
     const vacio = (valor) => valor == null || valor === '';
+    const peso = vacio(consulta.peso) ? null : Number(consulta.peso);
+    if (peso !== null && !(peso >= PESO.min && peso <= PESO.max)) return datoInvalido('peso', `El peso debe estar entre ${PESO.min} y ${PESO.max} kg.`);
 
-    let peso = null;
-    if (!vacio(consulta.peso)) {
-        peso = Number(consulta.peso);
-        if (!(peso >= PESO.min && peso <= PESO.max)) return datoInvalido('peso', `El peso debe estar entre ${PESO.min} y ${PESO.max} kg.`);
+    const altura = vacio(consulta.altura) ? null : Number(consulta.altura);
+    if (altura !== null && !(altura >= ALTURA.min && altura <= ALTURA.max)) return datoInvalido('altura', `La altura debe estar entre ${ALTURA.min} y ${ALTURA.max} cm.`);
+
+    let enfermedadId = null;
+    if (consulta.enfermedadId != null && consulta.enfermedadId !== '') {
+        enfermedadId = Number(consulta.enfermedadId);
+        const existe = (await obtenerEnfermedades()).some(e => e.id === enfermedadId);
+        if (!existe) return datoInvalido('enfermedad', 'Elige una enfermedad del catálogo.');
     }
-
-    let altura = null;
-    if (!vacio(consulta.altura)) {
-        altura = Number(consulta.altura);
-        if (!(altura >= ALTURA.min && altura <= ALTURA.max)) return datoInvalido('altura', `La altura debe estar entre ${ALTURA.min} y ${ALTURA.max} cm.`);
-    }
-
-    // La enfermedad es obligatoria (EnfermedadID no admite nulos)
-    const enfermedadId = Number(consulta.enfermedadId);
-    const existe = !vacio(consulta.enfermedadId) && (await obtenerEnfermedades()).some(e => e.id === enfermedadId);
-    if (!existe) return datoInvalido('enfermedad', 'Elige una enfermedad del catálogo.');
 
     const paciente = await obtenerPaciente(pacienteId);
     const consultas = await cargarJSON();
@@ -236,7 +353,7 @@ export async function crearConsulta(consulta) {
         edad: calcularEdad(paciente?.fechaNacimiento), // edad del paciente el día de la consulta
         peso,
         altura,
-        fecha: fechaHoraLocal().slice(0, 10),            // FechaConsulta es DATE: solo "AAAA-MM-DD"
+        fecha: fechaHoraLocal(),
         llave,
         notas: String(consulta.notas ?? '').trim()
     };

@@ -12,8 +12,12 @@ export function calcularEdad(fechaIso) {
     return hoy.getFullYear() - anio - (aunNoCumple ? 1 : 0);
 }
 
-/** "2026-09-14" -> "lunes, 14 de septiembre de 2026" (fecha sola, sin zona horaria) */
+/**
+ * Fecha de una consulta. "2026-09-14" -> "lunes, 14 de septiembre de 2026" (fecha sola, sin zona horaria:
+ * new Date("2026-09-14") la tomaría como UTC y mostraría el día anterior). Si trae hora, la muestra.
+ */
 export function formatearFecha(fechaIso) {
+    if (fechaIso.includes('T')) return formatearFechaHora(fechaIso);
     const [anio, mes, dia] = fechaIso.split('-').map(Number);
     return new Date(anio, mes - 1, dia).toLocaleDateString('es-MX', { dateStyle: 'full' });
 }

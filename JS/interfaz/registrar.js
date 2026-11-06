@@ -1,5 +1,5 @@
-// Página de registro (registrar.html): crea la cuenta del médico y lo lleva al inicio de sesión.
-import { crearMedico } from '../servicios/medicosServicio.js';
+// Página de registro (registrar.html): crea la cuenta de un médico y lo lleva al inicio de sesión.
+import { registrarMedico } from '../servicios/sesionServicio.js';
 
 const formulario = document.getElementById('formulario-registro');
 const clave = document.getElementById('clave');
@@ -19,30 +19,32 @@ clave?.addEventListener('input', validarCoincidencia);
 confirmarClave?.addEventListener('input', validarCoincidencia);
 
 function mostrarError(texto) {
+    if (!mensajeError) return;
     mensajeError.textContent = texto;
     mensajeError.hidden = false;
 }
 
 formulario?.addEventListener('submit', async (evento) => {
     evento.preventDefault();
-    mensajeError.hidden = true;
 
-    // Quita espacios sobrantes para que "required" detecte campos con solo espacios
-    for (const campo of ['nombre', 'apellidos', 'ciudad', 'efirma', 'usuario']) {
-        formulario.elements[campo].value = formulario.elements[campo].value.trim();
-    }
+    if (mensajeError) mensajeError.hidden = true;
+
+    // Quita espacios al inicio y al final para que "required" detecte campos con solo espacios
+    formulario.querySelectorAll('input[type="text"]').forEach(campo => { campo.value = campo.value.trim(); });
+    validarCoincidencia();
     if (!formulario.reportValidity()) return;
 
-    boton.disabled = true;                     // evita registrar dos veces con doble clic
+    boton.disabled = true;                     // evita crear la cuenta dos veces con doble clic
 
     try {
-        const resultado = await crearMedico({
-            nombre: formulario.elements.nombre.value,
-            apellidos: formulario.elements.apellidos.value,
-            ciudad: formulario.elements.ciudad.value,
-            eFirma: formulario.elements.efirma.value,
-            usuario: formulario.elements.usuario.value,
-            clave: formulario.elements.clave.value
+        const datos = Object.fromEntries(new FormData(formulario));
+        const resultado = await registrarMedico({
+            nombre: datos.nombre,
+            apellidos: datos.apellidos,
+            ciudad: datos.ciudad,
+            efirma: datos.efirma,
+            usuario: datos.usuario,
+            clave: datos.clave
         });
 
         if (resultado.success) {
@@ -51,8 +53,6 @@ formulario?.addEventListener('submit', async (evento) => {
         }
 
         mostrarError(resultado.message ?? 'No se pudo crear la cuenta.');
-        const campo = resultado.campo === 'eFirma' ? 'efirma' : resultado.campo;
-        formulario.elements[campo]?.focus();
     } catch (error) {
         console.error('Error al crear la cuenta:', error);
         mostrarError('Ocurrió un problema al conectar con el servidor.');

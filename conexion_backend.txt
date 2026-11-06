@@ -1,0 +1,87 @@
+CONEXIÓN FRONTEND <-> BACKEND
+
+Cómo ponerlo a funcionar (3 terminales)
+---------------------------------------
+1. Base de datos (una sola vez), desde backend/:
+       alembic upgrade head
+       python scripts/seed_catalogo.py
+2. Backend, desde backend/:
+       python -m uvicorn app.main:app --port 8000
+3. Frontend, desde esta carpeta:
+       python servidor_dev.py
+   y abrir  http://127.0.0.1:8765/login.html   (primero "Regístrate" para crear un médico)
+
+servidor_dev.py sirve las páginas y reenvía todo lo que empiece con /api/ al backend. Así el navegador habla con un
+solo origen y NO hace falta CORS. Para otro puerto o backend:  python servidor_dev.py --puerto 9090 --backend http://127.0.0.1:9000
+No abras los .html con doble clic (file://) ni con un servidor que no reenvíe /api/: el registro y el login darían
+error 405 (Method Not Allowed) porque ese servidor no conoce el backend.
+
+Si prefieres usar Live Server (extensión de VS Code, puerto 5500):
+  - Esta carpeta ya trae .vscode/settings.json con  liveServer.settings.proxy  que reenvía /api al backend (8000).
+  - Funciona si VS Code tiene abierta ESTA carpeta (fronted_proyecto_mediapoyo-main) como proyecto. Si abriste la
+    carpeta de arriba (frontend), copia ese bloque a los ajustes de tu proyecto.
+  - Reinicia Live Server (Go Live) después de cambiar los ajustes y abre login.html desde la raíz de esta carpeta.
+  - Si algo no funciona, usa servidor_dev.py: hace lo mismo sin depender de la extensión.
+
+Cambiar entre backend y simulación
+----------------------------------
+JS/config.js  ->  USAR_API = true  (backend)  |  false  (archivos de la carpeta JSON/, sin servidor)
+En modo simulación, usuario de prueba: elena.prado / Elena2026!  (ver JSON/medicos.json)
+
+Cómo está armado
+----------------
+- Las pantallas (JS/interfaz/) no saben de HTTP: solo llaman a las funciones de JS/servicios/.
+- JS/servicios/api.js: cliente común. Guarda el token de sesión (JWT) en sessionStorage, lo manda en cada petición
+  (Authorization: Bearer ...) y convierte los errores HTTP en { success:false, codigo, message }.
+  Si el servidor responde 401 (sesión vencida), borra el token y manda al login.
+- Cada servicio traduce entre lo que usa la pantalla y lo que usa el backend (snake_case, sexo H/M, altura en metros...).
+
+Qué usa cada pantalla
+---------------------
+Registro / login ........ POST /auth/registro, POST /auth/login, GET /auth/me
+Buscar paciente ......... GET /pacientes?buscar=   (ver "Búsqueda sin acentos")
+Nuevo / editar paciente . POST /pacientes, PATCH /pacientes/{id}
+Citas ................... GET/POST /citas, GET/PATCH/DELETE /citas/{id}
+Nueva consulta .......... GET /catalogo/sintomas?solo_modelo=true, GET /catalogo/enfermedades,
+                          POST /ml/predecir (sugerencias), POST /consultas
+Historial ............... GET /historial/{paciente_id}  (solo las consultas del médico en sesión)
+Llave de otro médico .... POST /consultas/acceso  (la llave va en el cuerpo; 5 intentos fallidos -> 429)
+Buscar enfermedad ....... GET /catalogo/enfermedades, GET /catalogo/enfermedades/{id}
+Gráficas (inicio) ....... GET /dashboard?anio=
+
+Diferencias con el diseño original (decisiones tomadas para no cambiar el backend)
+-----------------------------------------------------------------------------------
+- Pacientes: el directorio es COMPARTIDO. Cualquier médico busca y ve a cualquier paciente; ya no existe la
+  "vinculación" por CURP. Lo privado son las consultas: cada médico solo ve las suyas (las demás, con su llave).
+- Correo del paciente: se quitó de los formularios. La tabla Pacientes de la base de datos no tiene esa columna.
+- Registro de médicos: se agregaron "Ciudad" (la base la exige y es la "región" de las gráficas) y "e.firma"
+  (la base la exige). Revisa el texto de ayuda de e.firma: es una suposición de qué se debe capturar.
+- Consulta: la enfermedad (diagnóstico) es OBLIGATORIA; la base no admite consultas sin enfermedad.
+  La altura se captura en cm y se guarda en metros (se convierte sola).
+- Sugerencias de enfermedad: ahora las calcula el modelo de aprendizaje y muestran una probabilidad (%). Es
+  orientativo, no un diagnóstico. Solo se ofrecen los síntomas que el modelo entiende (234 de 377).
+- Síntomas: el backend no tiene "categoría"; ya no se muestra.
+- Buscar enfermedad: el filtro busca por nombre de enfermedad (no por síntoma) y los síntomas se ven al elegirla.
+- Gráficas: la gráfica de líneas ahora es "Casos mensuales por región" (una línea por región; antes era por
+  enfermedad). El selector "Todo el año / mes" cambia el pastel para ver el Top 5 de ese mes. "Región" = ciudad
+  del médico. Son conteos de las consultas de TODOS los médicos (no incluyen datos de pacientes).
+- Citas: el servidor solo impide dos citas a la misma hora exacta y fechas anteriores a hoy. El horario (08:00-20:00)
+  y que no se empalmen citas de 30 minutos lo valida el frontend. "Eliminar" borra la cita.
+- Auditoría: sigue siendo solo del navegador (consola F12). El backend todavía no tiene tabla de auditoría.
+
+Cosas que el backend todavía no ofrece (y por eso no funcionan o se ven distinto)
+---------------------------------------------------------------------------------
+- Editar el perfil del médico (nombre y apellidos): no hay endpoint. El botón muestra un aviso.
+- Nombre de otros médicos: en una consulta abierta con llave se muestra "Otro médico" (el backend solo da su id).
+- Búsqueda de pacientes sin acentos: el backend distingue acentos, así que el frontend pide al servidor los
+  pacientes que contienen las consonantes escritas y afina aquí (JS/servicios/pacientesServicio.js). Revisa hasta
+  500 candidatos: con un directorio enorme, una búsqueda de 2 letras podría dejar fuera coincidencias.
+- Límite de intentos en memoria: se reinicia al reiniciar el backend (esperado en desarrollo).
+
+Seguridad
+---------
+- El token vive en sessionStorage (se borra al cerrar la pestaña). Si alguna vez se inyectara código en la página
+  (XSS) podría leerlo; por eso las pantallas usan textContent y no innerHTML con datos. Una cookie HttpOnly sería
+  más segura, pero requiere un cambio en el backend.
+- Los datos de pacientes, citas y consultas se validan de nuevo en el servidor (excepto el horario de 08:00-20:00 y el
+  empalme de citas, ver arriba). Las reglas de privacidad (quién ve qué consulta) viven solo en el servidor.

@@ -3,16 +3,20 @@
 // Para conectar la base de datos basta con poner USAR_API = true (y ajustar las URLs).
 //
 // Cada médico ve y maneja SOLO su propia agenda.
-// Una cita pertenece a un médico y a un paciente suyo.
-// "Eliminar" quita la cita de la tabla Citas.
+// Una cita pertenece a un médico y a un paciente (cualquier paciente del directorio).
+// "Eliminar" quita la cita de la tabla Citas (la tabla no tiene columna de estado).
+//
+// Con el backend, las reglas de la agenda que el servidor NO aplica (horario de 08:00 a 20:00, citas de
+// 30 minutos que no se empalmen) se siguen validando aquí. El servidor sí exige: que el paciente exista,
+// que la fecha no sea anterior a hoy y que el médico no tenga otra cita a la misma hora exacta.
 
 import { obtenerMedicoActual } from './sesionServicio.js';
 import { buscarPacientePorCurp, resumenPacientes } from './pacientesServicio.js';
 import { registrarAuditoria, fechaHoraLocal } from './auditoriaServicio.js';
+import { USAR_API } from '../config.js';
+import { pedir, falla, traerTodas } from './api.js';
 
-const USAR_API = false;
 const URL_JSON = 'JSON/citas.json';      // ruta relativa a index.html
-const URL_API = '/api/citas';             // endpoint futuro (backend + base de datos)
 
 // Reglas de la agenda (las usa también el calendario para limitar la hora)
 export const DURACION_CITA_MIN = 30;
@@ -100,6 +104,31 @@ async function buscarCitaPropia(id) {
     return { medico, lista, cita };
 }
 
+// ----- Ayudantes para la API -----
+
+// La API maneja fecha y hora por separado; la aplicación, "2026-10-26T09:00:00"
+const inicioDeApi = (c) => `${c.fecha_cita}T${c.hora_cita.slice(0, 5)}:00`;
+
+// El calendario pide "hasta" EXCLUSIVO (medianoche del día siguiente) y la API lo toma INCLUIDO
+function ultimoDiaIncluido(hastaExclusivo) {
+    const dia = new Date(`${hastaExclusivo.slice(0, 10)}T00:00:00`);
+    dia.setDate(dia.getDate() - 1);
+    return fechaHoraLocal(dia).slice(0, 10);
+}
+
+// ¿Hay otra cita mía dentro de los 30 minutos de ese horario? (el servidor solo rechaza la misma hora exacta)
+async function hayEmpalmeApi(fecha, hora, excluirId = null) {
+    const delDia = await traerTodas('/citas', { desde: fecha, hasta: fecha });
+    const nuevo = new Date(`${fecha}T${hora}:00`).getTime();
+
+    return delDia.some(c =>
+        c.id !== excluirId &&
+        Math.abs(new Date(inicioDeApi(c)).getTime() - nuevo) < DURACION_CITA_MIN * 60000
+    );
+}
+
+const HORARIO_OCUPADO = () => error('HORARIO_OCUPADO', 'Ya hay una cita en ese horario. Elige otra hora.');
+
 // ----- Funciones que usa el calendario -----
 
 /**
@@ -110,12 +139,22 @@ async function buscarCitaPropia(id) {
 */
 export async function obtenerCitas({ desde, hasta } = {}) {
     if (USAR_API) {
-        const parametros = new URLSearchParams({ desde, hasta });
-        const respuesta = await fetch(`${URL_API}?${parametros}`);
-        if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
-        return respuesta.json();
+        const lista = await traerTodas('/citas', {
+            desde: desde?.slice(0, 10),
+            hasta: hasta ? ultimoDiaIncluido(hasta) : undefined
+        });
+
+        // La cita trae nombre y apellidos del paciente; la CURP se pide aparte (y se guarda en memoria)
+        const pacientes = await resumenPacientes(lista.map(c => c.paciente.id));
+
+        return lista.map(c => ({
+            id: c.id,
+            inicio: inicioDeApi(c),
+            fin: finDe(inicioDeApi(c)),
+            paciente: pacientes.get(c.paciente.id) ?? { ...c.paciente, curp: '' }
+        }));
     }
-    
+
     await esperar(150);                    // simula la demora de una red real
     
     const medico = await obtenerMedicoActual();
@@ -147,14 +186,27 @@ export async function obtenerCitas({ desde, hasta } = {}) {
 */
 export async function crearCita({ fecha, hora, curp }) {
     if (USAR_API) {
-        const respuesta = await fetch(URL_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fecha, hora, curp })
+        const problema = validarHorario(fecha, hora);
+        if (problema) return problema;
+
+        const paciente = await buscarPacientePorCurp(curp);
+        if (!paciente) {
+            return error('PACIENTE_NO_ENCONTRADO',
+                'No hay un paciente con esa CURP. Regístralo primero con "Nuevo Paciente".');
+        }
+
+        if (await hayEmpalmeApi(fecha, hora)) return HORARIO_OCUPADO();
+
+        const resp = await pedir('/citas', {
+            metodo: 'POST',
+            cuerpo: { paciente_id: paciente.id, fecha_cita: fecha, hora_cita: hora }
         });
-        return respuesta.json();
+
+        if (resp.ok) return { success: true };
+        if (resp.estado === 409) return HORARIO_OCUPADO();
+        return falla(resp, 'No se pudo agendar la cita.');
     }
-    
+
     await esperar(300);
     
     const medico = await obtenerMedicoActual();
@@ -194,14 +246,29 @@ export async function crearCita({ fecha, hora, curp }) {
 */
 export async function actualizarCita(id, { fecha, hora }) {
     if (USAR_API) {
-        const respuesta = await fetch(`${URL_API}/${encodeURIComponent(id)}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fecha, hora })
+        const actual = await pedir(`/citas/${encodeURIComponent(id)}`);
+        if (actual.estado === 404) return NO_ENCONTRADA;
+        if (!actual.ok) return falla(actual, 'No se pudo cargar la cita.');
+
+        if (yaPaso(inicioDeApi(actual.datos))) return error('CITA_PASADA', 'Esta cita ya pasó: no se puede cambiar.');
+
+        const problema = validarHorario(fecha, hora);
+        if (problema) return problema;
+
+        if (`${fecha}T${hora}:00` === inicioDeApi(actual.datos)) return { success: true };     // no cambió nada
+        if (await hayEmpalmeApi(fecha, hora, Number(id))) return HORARIO_OCUPADO();
+
+        const resp = await pedir(`/citas/${encodeURIComponent(id)}`, {
+            metodo: 'PATCH',
+            cuerpo: { fecha_cita: fecha, hora_cita: hora }
         });
-        return respuesta.json();
+
+        if (resp.ok) return { success: true };
+        if (resp.estado === 404) return NO_ENCONTRADA;
+        if (resp.estado === 409) return HORARIO_OCUPADO();
+        return falla(resp, 'No se pudo actualizar la cita.');
     }
-    
+
     await esperar(300);
     
     const { problema: sinCita, medico, lista, cita } = await buscarCitaPropia(id);
@@ -232,10 +299,18 @@ export async function actualizarCita(id, { fecha, hora }) {
 */
 export async function eliminarCita(id) {
     if (USAR_API) {
-        const respuesta = await fetch(`${URL_API}/${encodeURIComponent(id)}`, { method: 'DELETE' });
-        return respuesta.json();
+        const actual = await pedir(`/citas/${encodeURIComponent(id)}`);
+        if (actual.estado === 404) return NO_ENCONTRADA;
+        if (!actual.ok) return falla(actual, 'No se pudo cargar la cita.');
+
+        if (yaPaso(inicioDeApi(actual.datos))) return error('CITA_PASADA', 'Esta cita ya pasó: no se puede eliminar.');
+
+        const resp = await pedir(`/citas/${encodeURIComponent(id)}`, { metodo: 'DELETE' });
+        if (resp.ok) return { success: true };
+        if (resp.estado === 404) return NO_ENCONTRADA;
+        return falla(resp, 'No se pudo eliminar la cita.');
     }
-    
+
     await esperar(300);
     
     const { problema, medico, lista, cita } = await buscarCitaPropia(id);

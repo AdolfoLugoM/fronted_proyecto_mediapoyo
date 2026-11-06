@@ -85,7 +85,7 @@ function dibujarDetalle(cuerpo, detalle) {
     medidas.append(
         crear('span', 'etiqueta-medida', `${detalle.edad} años`)
     );
-    // Peso y altura son opcionales: solo se muestran si se capturaron
+    // Peso y altura pueden venir vacíos: solo se muestran si existen
     if (detalle.peso != null) medidas.append(crear('span', 'etiqueta-medida', `${detalle.peso} kg`));
     if (detalle.altura != null) medidas.append(crear('span', 'etiqueta-medida', `${detalle.altura} cm`));
 
