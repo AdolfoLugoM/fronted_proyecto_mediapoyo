@@ -31,22 +31,6 @@ const sumar = (lista) => lista.reduce((suma, valor) => suma + valor, 0);
 
 /**
 * Las enfermedades con más casos (por defecto las 5 más comunes), ya ordenadas de mayor a menor.
-* Respuesta:
-* {
-*   meses: ['Ene', ...],
-*   regiones: ['Norte', ...],
-*   enfermedades: [                      // las del año, de más a menos casos
-*     { nombre, total, porMes?: [12 números], porRegion: [un número por región] }
-*   ],
-*   mensualPorRegion: [                  // casos de esas enfermedades, mes a mes, en cada región
-*     { region, porMes: [12 números] }
-*   ],
-*   topPorMes: [                         // las más diagnosticadas de cada mes
-*     { mes: 'Ene', enfermedades: [ { nombre, casos } ] }
-*   ]
-* }
-* Con la API, el servidor siempre devuelve las 5 más comunes (el parámetro "limite" no cambia eso).
-* Con el JSON de pruebas, "anio" se ignora porque el archivo trae un solo año.
 */
 export async function obtenerTopEnfermedades({ limite = 5, anio } = {}) {
     if (USAR_API) {
