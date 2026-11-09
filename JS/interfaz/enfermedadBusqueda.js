@@ -27,6 +27,8 @@ function sintomasDe(enfermedad) {
 // Con el backend solo se conocen los síntomas de las enfermedades ya elegidas: el filtro mira solo los nombres
 function coincide(enfermedad, consulta) {
     if (consulta === '') return true;
+    // Si lo escrito son solo dígitos, también se busca por id (coincidencia exacta: "1" no trae el 10, 11…)
+    if (/^\d+$/.test(consulta) && enfermedad.id === Number(consulta)) return true;
     const textos = [enfermedad.nombre, ...(enfermedad.sintomaIds ? sintomasDe(enfermedad).map(s => s.nombre) : [])];
     return textos.some(t => normalizar(t).includes(consulta));
 }
@@ -96,7 +98,7 @@ function dibujarDetalle() {
         detalle.append(espera);
         return;
     }
-
+    
     if (sintomas.length === 0) {
         const nada = document.createElement('p');
         nada.className = 'detalle-vacio';
