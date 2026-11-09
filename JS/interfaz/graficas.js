@@ -1,5 +1,5 @@
 // Gráficas de la vista inicial: las 5 enfermedades más comunes.
-//   - Pastel:  las 5 enfermedades más diagnosticadas del año, o las 5 de un mes (selector "Periodo").
+//   - Pastel:  las 5 enfermedades más diagnosticadas del año (siempre por año).
 //   - Barras:  total anual por región de las 5 enfermedades del año.
 //   - Líneas:  casos mensuales de esas 5 enfermedades, una línea por región.
 // Los datos llegan desde tendenciasServicio.js (JSON o backend): este archivo solo dibuja.
@@ -13,9 +13,6 @@ const LIMITE = 5;
 // Un color por enfermedad, el mismo en las tres gráficas para que se reconozcan entre sí
 const COLORES_ENFERMEDAD = ['#a78bfa', '#fb923c', '#2dd4bf', '#e7695b', '#38bdf8'];
 
-// Las enfermedades que son top de un mes pero no del año, y las regiones (una línea cada una)
-const COLORES_EXTRA = ['#facc15', '#f472b6', '#4ade80', '#94a3b8', '#c084fc', '#fb7185', '#22d3ee', '#a3e635'];
-
 // Las líneas de región usan colores propios (distintos a los de las enfermedades) y trazos diferentes,
 // para que un mismo color no signifique una enfermedad en una gráfica y una región en otra
 const COLORES_REGION = ['#e2e8f0', '#fcd34d', '#6ee7b7', '#f0abfc', '#93c5fd', '#fdba74', '#a5b4fc', '#bef264'];
@@ -25,8 +22,6 @@ const lienzoLinea = document.getElementById('grafica-linea');
 const lienzoBarras = document.getElementById('grafica-barras');
 const lienzoPastel = document.getElementById('grafica-pastel');
 const mensaje = document.getElementById('mensaje-graficas');
-const selectorPeriodo = document.getElementById('selector-periodo');
-const tituloPastel = document.getElementById('titulo-pastel');
 const notaDatos = document.querySelector('.nota-datos');
 
 function mostrarError(texto) {
@@ -38,13 +33,9 @@ function mostrarError(texto) {
 const graficas = [];                         // para volver a dibujarlas al cambiar de tema
 
 const colorDe = (i) => COLORES_ENFERMEDAD[i % COLORES_ENFERMEDAD.length];
-const colorExtra = (i) => COLORES_EXTRA[i % COLORES_EXTRA.length];
 
-let datos = null;                            // los últimos datos recibidos (los usan el tema, el periodo y la recarga)
-let selectorListo = false;
+let datos = null;                            // los últimos datos recibidos (los usan el tema y la recarga)
 let ultimaCarga = 0;
-let pastel = null;                           // el pastel se redibuja solo al cambiar el periodo
-let periodo = null;                          // null = todo el año; 0 a 11 = ese mes
 
 // Toma los colores de la paleta CSS para que las gráficas combinen con el tema activo
 function aplicarEstiloBase() {
@@ -54,41 +45,11 @@ function aplicarEstiloBase() {
     Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
 }
 
-// Casos y color de cada porción del pastel: las 5 del año o las 5 del mes elegido.
-// Una enfermedad que está entre las 5 del año conserva su color en las tres gráficas.
-function porcionesDelPastel(top) {
-    const delAnio = new Map(top.enfermedades.map((e, i) => [e.nombre, colorDe(i)]));
-
-    if (periodo === null) {
-        return top.enfermedades.map(e => ({ nombre: e.nombre, casos: e.total, color: delAnio.get(e.nombre) }));
-    }
-
-    let siguienteExtra = 0;
-    return top.topPorMes[periodo].enfermedades.map(e => ({
-        nombre: e.nombre,
-        casos: e.casos,
-        color: delAnio.get(e.nombre) ?? colorExtra(siguienteExtra++)
-    }));
-}
-
-// Pastel: qué parte de los casos del top 5 aporta cada enfermedad
+// Pastel: qué parte de los casos del top 5 del año aporta cada enfermedad
 function dibujarPastel(top) {
-    if (pastel) {
-        graficas.splice(graficas.indexOf(pastel), 1);
-        pastel.destroy();
-        pastel = null;
-    }
+    const porciones = top.enfermedades.map((e, i) => ({ nombre: e.nombre, casos: e.total, color: colorDe(i) }));
 
-    const porciones = porcionesDelPastel(top);
-
-    if (tituloPastel) {
-        tituloPastel.textContent = periodo === null
-            ? 'Distribución por enfermedad (año)'
-            : `Top 5 de ${top.meses[periodo]}${porciones.length === 0 ? ': sin consultas' : ''}`;
-    }
-    if (porciones.length === 0) return;        // mes sin consultas: no hay nada que dibujar
-
-    pastel = new Chart(lienzoPastel, {
+    graficas.push(new Chart(lienzoPastel, {
         type: 'pie',
         data: {
             labels: porciones.map(p => p.nombre),
@@ -116,8 +77,7 @@ function dibujarPastel(top) {
                 }
             }
         }
-    });
-    graficas.push(pastel);
+    }));
 }
 
 // Barras apiladas: casos de cada región, divididos por enfermedad
@@ -181,26 +141,9 @@ function dibujarTodas(top) {
 function redibujarAlCambiarTema() {
     new MutationObserver(() => {
         graficas.splice(0).forEach(grafica => grafica.destroy());
-        pastel = null;                       // ya se destruyó junto con las demás
         aplicarEstiloBase();
         if (datos) dibujarTodas(datos);
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-tema'] });
-}
-
-// Llena el selector "Periodo" (todo el año o un mes) y redibuja el pastel al cambiarlo
-function prepararSelectorPeriodo(top) {
-    if (!selectorPeriodo || selectorListo) return;
-    selectorListo = true;
-
-    selectorPeriodo.replaceChildren(new Option('Todo el año', ''));
-    top.meses.forEach((mes, i) => selectorPeriodo.append(new Option(mes, String(i))));
-    selectorPeriodo.hidden = false;
-    selectorPeriodo.previousElementSibling?.removeAttribute('hidden');
-
-    selectorPeriodo.addEventListener('change', () => {
-        periodo = selectorPeriodo.value === '' ? null : Number(selectorPeriodo.value);
-        if (datos) dibujarPastel(datos);
-    });
 }
 
 // Pide los datos y dibuja (o redibuja) las tres gráficas. Devuelve false si todavía no hay nada que mostrar.
@@ -217,10 +160,8 @@ async function cargarYDibujar() {
 
     if (mensaje) mensaje.hidden = true;
     graficas.splice(0).forEach(grafica => grafica.destroy());
-    pastel = null;
     datos = top;
 
-    prepararSelectorPeriodo(top);
     dibujarTodas(top);
     return true;
 }

@@ -194,24 +194,22 @@
             <p id="mensaje-graficas" class="mensaje-graficas" hidden></p>
             
             <div class="controles-graficas">
-                <label for="selector-periodo" hidden>Periodo del gráfico circular</label>
-                <select id="selector-periodo" hidden></select>
                 <span class="nota-datos">Datos simulados</span>
             </div>
 
             <div class="rejilla-graficas">
                 <article class="tarjeta-grafica">
-                    <h3 id="titulo-pastel">Distribución por enfermedad</h3>
+                    <h3>Distribución por enfermedad (año)</h3>
                     <div class="contenedor-lienzo"><canvas id="grafica-pastel"></canvas></div>
                 </article>
                 
                 <article class="tarjeta-grafica">
-                    <h3>Total anual por región (5 enfermedades del año)</h3>
+                    <h3>Total anual por región (año)</h3>
                     <div class="contenedor-lienzo"><canvas id="grafica-barras"></canvas></div>
                 </article>
                 
                 <article class="tarjeta-grafica tarjeta-grafica--ancha">
-                    <h3>Casos mensuales por región (5 enfermedades del año)</h3>
+                    <h3>Casos mensuales por región (año)</h3>
                     <div class="contenedor-lienzo"><canvas id="grafica-linea"></canvas></div>
                 </article>
             </div>
@@ -301,9 +299,9 @@
             
             <div class="navegador-enfermedades">
                 <div class="panel-enfermedades">
-                    <label for="buscador-enfermedad" class="etiqueta-buscador" id="etiqueta-buscador-enfermedad">Filtrar enfermedades o síntomas</label>
+                    <label for="buscador-enfermedad" class="etiqueta-buscador" id="etiqueta-buscador-enfermedad">Filtrar por nombre, síntoma o ID</label>
                     <input type="search" id="buscador-enfermedad" autocomplete="off" spellcheck="false"
-                        placeholder="Filtrar enfermedades o síntomas...">
+                        placeholder="Ej. dengue, fiebre o 3...">
                     
                     <p class="contador-enfermedades" id="contador-enfermedades" aria-live="polite"></p>
                     <ul class="lista-enfermedades" id="lista-enfermedades"></ul>
