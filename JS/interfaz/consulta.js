@@ -62,10 +62,10 @@ const normalizar = (texto) => texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toL
 async function cargarCatalogo() {
     if (catalogoCargado || cargandoCatalogo) return;
     cargandoCatalogo = true;
-
+    
     buscador.disabled = true;
     buscador.placeholder = 'Cargando síntomas...';
-
+    
     try {
         catalogo = await obtenerSintomas();
         catalogoCargado = true;
@@ -84,10 +84,10 @@ async function cargarCatalogo() {
 async function cargarEnfermedades() {
     if (enfermedadesCargadas || cargandoEnfermedades) return;
     cargandoEnfermedades = true;
-
+    
     buscadorEnfermedad.disabled = true;
     buscadorEnfermedad.placeholder = 'Cargando enfermedades...';
-
+    
     try {
         enfermedades = await obtenerEnfermedades();
         enfermedadesCargadas = true;
@@ -110,7 +110,7 @@ async function cargarEnfermedades() {
 function buscarCoincidencias(texto) {
     const buscado = normalizar(texto);
     if (buscado === '') return [];
-
+    
     return catalogo
         .filter(s => !elegidos.has(s.id) && normalizar(s.nombre).includes(buscado))
         .sort((a, b) =>
@@ -134,14 +134,14 @@ function dibujarSugerencias() {
     listaSugerencias.replaceChildren();
     indiceActivo = -1;
     buscador.removeAttribute('aria-activedescendant');
-
+    
     if (normalizar(buscador.value) === '' || sintomaPendiente) {
         cerrarSugerencias();
         return;
     }
-
+    
     sugerencias = buscarCoincidencias(buscador.value);
-
+    
     if (sugerencias.length === 0) {
         const vacio = document.createElement('li');
         vacio.className = 'sugerencia-vacia';
@@ -154,10 +154,10 @@ function dibujarSugerencias() {
             opcion.dataset.indice = i;
             opcion.setAttribute('role', 'option');
             opcion.setAttribute('aria-selected', 'false');
-
+            
             const nombre = document.createElement('span');
             nombre.textContent = sintoma.nombre;
-
+            
             opcion.append(nombre);
             if (sintoma.categoria) {                   // el catálogo del backend no trae categorías
                 const categoria = document.createElement('small');
@@ -167,7 +167,7 @@ function dibujarSugerencias() {
             listaSugerencias.appendChild(opcion);
         });
     }
-
+    
     abrirSugerencias();
 }
 
@@ -175,10 +175,10 @@ function dibujarSugerencias() {
 function resaltar(indice) {
     const opciones = listaSugerencias.querySelectorAll('[role="option"]');
     if (opciones.length === 0) return;
-
+    
     indiceActivo = (indice + opciones.length) % opciones.length;
     opciones.forEach((opcion, i) => opcion.setAttribute('aria-selected', String(i === indiceActivo)));
-
+    
     const activa = opciones[indiceActivo];
     buscador.setAttribute('aria-activedescendant', activa.id);
     activa.scrollIntoView({ block: 'nearest' });
@@ -196,7 +196,7 @@ function seleccionar(sintoma) {
 
 function anadirSintoma() {
     if (!sintomaPendiente) return;
-
+    
     elegidos.set(sintomaPendiente.id, sintomaPendiente);
     sintomaPendiente = null;
     buscador.value = '';
@@ -208,14 +208,14 @@ function anadirSintoma() {
 
 function dibujarElegidos() {
     const fragmento = document.createDocumentFragment();
-
+    
     for (const sintoma of elegidos.values()) {
         const etiqueta = document.createElement('span');
         etiqueta.className = 'chip-sintoma';
-
+        
         const texto = document.createElement('span');
         texto.textContent = sintoma.nombre;
-
+        
         const quitar = document.createElement('button');
         quitar.type = 'button';
         quitar.textContent = '×';
@@ -225,18 +225,18 @@ function dibujarElegidos() {
             dibujarElegidos();
             buscador.focus();
         });
-
+        
         etiqueta.append(texto, quitar);
         fragmento.appendChild(etiqueta);
     }
-
+    
     contenedorElegidos.replaceChildren(fragmento);
-
+    
     const total = elegidos.size;
     contadorSintomas.textContent = total === 0
         ? 'Aún no has añadido síntomas'
         : total === 1 ? '1 síntoma añadido' : `${total} síntomas añadidos`;
-
+    
     dibujarEnfermedadesSugeridas();     // cada cambio en los síntomas cambia las sugerencias
 }
 
@@ -255,7 +255,7 @@ function reiniciarSintomas() {
 function buscarEnfermedades(texto) {
     const buscado = normalizar(texto);
     if (buscado === '') return [];
-
+    
     return enfermedades
         .filter(e => normalizar(e.nombre).includes(buscado))
         .sort((a, b) =>
@@ -285,14 +285,14 @@ function dibujarListaEnfermedades() {
     listaEnfermedades.replaceChildren();
     indiceEnfermedad = -1;
     buscadorEnfermedad.removeAttribute('aria-activedescendant');
-
+    
     if (normalizar(buscadorEnfermedad.value) === '' || enfermedadElegida) {
         cerrarListaEnfermedades();
         return;
     }
-
+    
     enfermedadesCoincidentes = buscarEnfermedades(buscadorEnfermedad.value);
-
+    
     if (enfermedadesCoincidentes.length === 0) {
         const vacio = document.createElement('li');
         vacio.className = 'sugerencia-vacia';
@@ -309,7 +309,7 @@ function dibujarListaEnfermedades() {
             listaEnfermedades.appendChild(opcion);
         });
     }
-
+    
     listaEnfermedades.hidden = false;
     buscadorEnfermedad.setAttribute('aria-expanded', 'true');
 }
@@ -318,10 +318,10 @@ function dibujarListaEnfermedades() {
 function resaltarEnfermedad(indice) {
     const opciones = listaEnfermedades.querySelectorAll('[role="option"]');
     if (opciones.length === 0) return;
-
+    
     indiceEnfermedad = (indice + opciones.length) % opciones.length;
     opciones.forEach((opcion, i) => opcion.setAttribute('aria-selected', String(i === indiceEnfermedad)));
-
+    
     const activa = opciones[indiceEnfermedad];
     buscadorEnfermedad.setAttribute('aria-activedescendant', activa.id);
     activa.scrollIntoView({ block: 'nearest' });
@@ -344,13 +344,13 @@ function reiniciarEnfermedad() {
 
 async function dibujarEnfermedadesSugeridas() {
     const miSugerencia = ++numeroSugerencia;
-
+    
     if (elegidos.size === 0) {
         contenedorSugeridas.hidden = true;
         contenedorSugeridas.replaceChildren();
         return;
     }
-
+    
     let sugeridas = [];
     let fallo = false;
     try {
@@ -360,7 +360,7 @@ async function dibujarEnfermedadesSugeridas() {
         fallo = true;
     }
     if (miSugerencia !== numeroSugerencia) return;     // ya hay una petición más nueva
-
+    
     const titulo = document.createElement('p');
     titulo.className = 'sugeridas-titulo';
     if (fallo) {
@@ -372,7 +372,7 @@ async function dibujarEnfermedadesSugeridas() {
     } else {
         titulo.textContent = 'Enfermedades con estos síntomas (haz clic para elegirla):';
     }
-
+    
     const botones = sugeridas.map(e => {
         const boton = document.createElement('button');
         boton.type = 'button';
@@ -393,7 +393,7 @@ async function dibujarEnfermedadesSugeridas() {
         });
         return boton;
     });
-
+    
     contenedorSugeridas.replaceChildren(titulo, ...botones);
     contenedorSugeridas.hidden = false;
 }

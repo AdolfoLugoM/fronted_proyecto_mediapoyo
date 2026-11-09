@@ -90,7 +90,7 @@ function dibujarDetalle() {
     // Los síntomas que coinciden con el texto buscado se resaltan
     const consulta = normalizar(buscador.value);
     const sintomas = sintomasDe(enfermedad);
-
+    
     if (cargando.has(enfermedad.id)) {
         const espera = document.createElement('p');
         espera.className = 'detalle-vacio';
