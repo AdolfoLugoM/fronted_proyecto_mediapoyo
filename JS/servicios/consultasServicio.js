@@ -87,8 +87,12 @@ function consultaDeApi(c, propia, nombreMedico) {
         fecha: c.fecha_consulta,
         propia,
         llave: propia ? c.llave : null,
-        // El backend no entrega el nombre de otros médicos, solo su id
-        medico: { id: c.medico_id, nombre: propia ? nombreMedico : 'Otro médico' },
+        // El backend entrega quién atendió (también al abrir con llave). Si no viniera (backend antiguo),
+        // las propias usan el nombre de la sesión y las ajenas se muestran como "Otro médico"
+        medico: {
+            id: c.medico_id,
+            nombre: c.medico ? `${c.medico.nombre} ${c.medico.apellidos}` : (propia ? nombreMedico : 'Otro médico')
+        },
         detalle: {
             enfermedad: c.enfermedad ? { id: c.enfermedad.id, nombre: c.enfermedad.nombre } : null,
             edad: c.edad,
