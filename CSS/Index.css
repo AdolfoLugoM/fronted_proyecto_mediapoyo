@@ -7,6 +7,11 @@ h1 {
     text-align: center;
 }
 
+/* Sin el margen de 8px que trae el navegador: así la barra superior queda a la misma altura que la hamburguesa */
+body {
+    margin: 0;
+}
+
 /* Área de contenido, con el espacio reservado para el sidebar */
 main {
     margin-left: 300px;
@@ -26,11 +31,20 @@ main.colapsado {
 .vista { display: none; }
 .vista.activa { display: block; }
 
+/* Pantallas muy anchas: el contenido no se estira de lado a lado, queda centrado */
+.vista { max-width: 1400px; margin-inline: auto; }
+
 /* ===== MÓVILES ===== */
-@media (max-width: 700px) {
-    main {
-        margin-left: 0;
-        padding: 20px 16px;
-        padding-top: 60px;              /* deja espacio al botón flotante de menú */
+@media (max-width: 700px), (max-height: 500px) and (max-width: 950px) {
+    main,
+    main.colapsado {
+        margin-left: 0 !important;
+        padding: 0 16px 20px;
+    }
+}
+/* ===== PANTALLAS BAJAS (celular horizontal): la barra superior ocupa menos alto ===== */
+@media (max-height: 500px) {
+    :root {
+        --eje-superior: 8px;
     }
 }

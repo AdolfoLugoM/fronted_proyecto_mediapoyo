@@ -79,6 +79,7 @@ REGISTRO DE PACIENTE (vista "Nuevo Paciente")
 /* Centra la tarjeta en el espacio que deja la barra superior */
 #vista-nuevo-paciente.activa {
     display: flex;
+    flex-direction: column;          /* el título h1 arriba y la tarjeta debajo */
     justify-content: center;
     align-items: center;
     /* alto de la pantalla menos: espacio superior + barra (44px) + espacio bajo la barra (24px) + padding inferior de <main> (24px) */

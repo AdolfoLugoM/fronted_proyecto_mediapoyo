@@ -1,5 +1,7 @@
 // Archivo de entrada: es el único script que carga index.html
 import './interfaz/tema.js';
+import './interfaz/tooltips.js';
+import './interfaz/validacion.js';
 import './interfaz/sidebar.js';
 import './interfaz/logout.js';
 import './interfaz/busqueda.js';

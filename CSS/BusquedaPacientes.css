@@ -51,3 +51,14 @@ BÚSQUEDA DE PACIENTES: vista de resultados (#vista-resultados)
 .tabla-pacientes tbody tr:hover {
     background-color: rgba(56, 189, 248, 0.08);
 }
+/* ===== TABLETAS Y MÓVILES: tabla más compacta para que quepan las tres columnas ===== */
+@media (max-width: 900px) {
+    .tabla-pacientes {
+        font-size: 0.85rem;
+    }
+
+    .tabla-pacientes th,
+    .tabla-pacientes td {
+        padding: 10px 8px;
+    }
+}

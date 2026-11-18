@@ -1,5 +1,7 @@
 // Página de registro (registrar.html): crea la cuenta de un médico y lo lleva al inicio de sesión.
 import { registrarMedico } from '../servicios/sesionServicio.js';
+import './validacion.js';
+import './tooltips.js';
 
 const formulario = document.getElementById('formulario-registro');
 const clave = document.getElementById('clave');
@@ -26,16 +28,16 @@ function mostrarError(texto) {
 
 formulario?.addEventListener('submit', async (evento) => {
     evento.preventDefault();
-
+    
     if (mensajeError) mensajeError.hidden = true;
-
+    
     // Quita espacios al inicio y al final para que "required" detecte campos con solo espacios
     formulario.querySelectorAll('input[type="text"]').forEach(campo => { campo.value = campo.value.trim(); });
     validarCoincidencia();
     if (!formulario.reportValidity()) return;
-
+    
     boton.disabled = true;                     // evita crear la cuenta dos veces con doble clic
-
+    
     try {
         const datos = Object.fromEntries(new FormData(formulario));
         const resultado = await registrarMedico({
@@ -46,17 +48,17 @@ formulario?.addEventListener('submit', async (evento) => {
             usuario: datos.usuario,
             clave: datos.clave
         });
-
+        
         if (resultado.success) {
             window.location.href = 'login.html';
             return;
         }
-
+        
         mostrarError(resultado.message ?? 'No se pudo crear la cuenta.');
     } catch (error) {
         console.error('Error al crear la cuenta:', error);
         mostrarError('Ocurrió un problema al conectar con el servidor.');
     }
-
+    
     boton.disabled = false;
 });

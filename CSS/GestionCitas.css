@@ -44,6 +44,17 @@
     text-decoration: none;
 }
 
+/* Tres columnas: el título queda en el centro exacto, alineado con el h1 */
+#vista-gestion-citas .fc .fc-header-toolbar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+}
+
+#vista-gestion-citas .fc .fc-header-toolbar .fc-toolbar-chunk:last-child {
+    justify-self: end;
+}
+
 #vista-gestion-citas .fc .fc-toolbar-title {
     font-size: 1.2rem;
     text-transform: capitalize;
@@ -203,4 +214,34 @@
 #vista-gestion-citas .fc .fc-nuevaCita-button:hover {
     background-color: #0ea5e9;
     border-color: #0ea5e9;
+}
+/* ===== MÓVILES: calendario y ventana de la cita ===== */
+@media (max-width: 700px), (max-height: 500px) and (max-width: 950px) {
+    .tarjeta-calendario {
+        padding: 8px;
+    }
+
+    /* Título arriba y botones abajo, en lugar de tres columnas */
+    #vista-gestion-citas .fc .fc-header-toolbar {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        gap: 8px;
+    }
+
+    #vista-gestion-citas .fc .fc-header-toolbar .fc-toolbar-chunk:last-child {
+        justify-self: center;
+    }
+
+    #vista-gestion-citas .fc .fc-toolbar-title {
+        font-size: 1.05rem;
+    }
+
+    #vista-gestion-citas .fc .fc-button {
+        padding: 0.4em 0.6em;
+        font-size: 0.85rem;
+    }
+
+    .modal-cita .modal-botones-logout {
+        flex-wrap: wrap;
+    }
 }

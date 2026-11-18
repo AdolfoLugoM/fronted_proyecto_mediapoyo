@@ -11,6 +11,13 @@
     --color-placeholder: #cbd5e1;
     --color-error: #ef4444;
     
+    /* sombras difuminadas del fondo (las usan el body y la barra del navegador): 4 manchas suaves de la paleta */
+    --sombras-fondo:
+        radial-gradient(ellipse 60% 50% at 15% 10%, rgba(56, 189, 248, 0.10), transparent 70%),
+        radial-gradient(ellipse 55% 60% at 90% 25%, rgba(30, 41, 59, 0.95), transparent 70%),
+        radial-gradient(ellipse 60% 55% at 70% 100%, rgba(56, 189, 248, 0.07), transparent 70%),
+        radial-gradient(ellipse 50% 50% at 0% 85%, rgba(71, 85, 105, 0.28), transparent 70%);
+    
     /* Distancia desde arriba a la que empieza la fila de 44px (hamburguesa, navegador y carril de íconos) */
     --eje-superior: 24px;
 }
@@ -24,13 +31,85 @@
     --color-acento-hover: #4dc6fe;
     --color-borde: #94a3b8;
     --color-placeholder: #475569;
+    --color-error: #dc2626;
+    
+    /* en el tema claro las sombras cambian a tonos claros */
+    --sombras-fondo:
+        radial-gradient(ellipse 60% 50% at 15% 10%, rgba(14, 165, 233, 0.12), transparent 70%),
+        radial-gradient(ellipse 55% 60% at 90% 25%, rgba(255, 255, 255, 0.9), transparent 70%),
+        radial-gradient(ellipse 60% 55% at 70% 100%, rgba(14, 165, 233, 0.08), transparent 70%),
+        radial-gradient(ellipse 50% 50% at 0% 85%, rgba(148, 163, 184, 0.30), transparent 70%);
 }
 
 * {
     box-sizing: border-box;
 }
 
+/* ===== CAMPOS INCORRECTOS (todas las páginas) =====
+Se activa al intentar guardar (validacion.js pone "con-errores" en el formulario)
+o cuando la persona ya escribió en el campo (:user-invalid).
+El cuadro se resalta en rojo y su etiqueta se pone roja con un asterisco. */
+form.con-errores :is(input, select, textarea):invalid,
+form :is(input, select, textarea):user-invalid {
+    border-color: var(--color-error);
+    box-shadow: 0 0 0 1px var(--color-error);
+}
+
+form.con-errores :is(input, select, textarea):invalid:focus,
+form :is(input, select, textarea):user-invalid:focus {
+    outline-color: var(--color-error);
+}
+
+/* "Seleccionar" se ve como texto de ayuda; las opciones reales conservan su color */
+select:required:invalid {
+    color: var(--color-placeholder);
+}
+
+select:required:invalid option:not([hidden]) {
+    color: var(--color-texto);
+}
+
+/* Etiqueta: la que está justo encima del campo (dentro de .campo o como hermana directa) */
+form.con-errores label:has(+ :is(input, select, textarea):invalid),
+form.con-errores .campo:has(:is(input, select, textarea):invalid) > label,
+form label:has(+ :is(input, select, textarea):user-invalid) {
+    color: var(--color-error);
+}
+
+form.con-errores label:has(+ :is(input, select, textarea):invalid)::after,
+form.con-errores .campo:has(:is(input, select, textarea):invalid) > label::after,
+form label:has(+ :is(input, select, textarea):user-invalid)::after {
+    content: " *";
+}
+
 body {
     background-color: var(--color-superficie);
+    
+    /* fondo plano con sombras difuminadas, fijo para que no se mueva al hacer scroll */
+    background-image: var(--sombras-fondo);
+    background-attachment: fixed;
+    
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+/* Mensajes emergentes (los crea tooltips.js a partir del atributo title) */
+.tooltip-flotante {
+    position: fixed;
+    z-index: 10000;
+    max-width: 280px;
+    padding: 8px 12px;
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--color-texto);
+    white-space: pre-line;           /* respeta los saltos de línea del title (citas) */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+
+.tooltip-flotante.visible {
+    opacity: 1;
 }

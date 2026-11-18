@@ -5,7 +5,9 @@
     position: sticky;
     top: 0;
     z-index: 90;                                 /* sobre las gráficas, bajo el sidebar (100) y el modal (1000) */
-    background-color: var(--color-superficie);   /* mismo fondo de la página, tapa lo que pasa por debajo */
+    background-color: var(--color-superficie);   /* tapa lo que pasa por debajo */
+    background-image: var(--sombras-fondo);      /* mismas sombras fijas de la página, así no se nota el recuadro */
+    background-attachment: fixed;
     padding: var(--eje-superior) 0 12px;         /* el espacio de arriba ahora es parte de la barra */
     
     display: flex !important;
@@ -142,27 +144,6 @@ main:not(.colapsado) .titulo-body {
     padding: 0 !important;
 }
 
-.btn-cerrar-sesion {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--color-superficie);
-    color: var(--color-placeholder);
-    border: 1px solid var(--color-borde);
-    padding: 10px 14px;
-    border-radius: 8px;
-    height: 44px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-cerrar-sesion:hover {
-    background-color: var(--color-error);
-    color: #ffffff;
-    border-color: var(--color-error);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
-}
-
 /* ===== ÍCONO DE USUARIO CON NOMBRE AL PASAR EL CURSOR ===== */
 .barra-cerrar-sesion {
     gap: 8px;
@@ -230,9 +211,10 @@ main:not(.colapsado) .titulo-body {
     display: block;
 }
 /* Tema claro: borde negro en el buscador y los botones de la barra superior */
-:root[data-tema="claro"] .formulario-busqueda:not(:focus-within),
-:root[data-tema="claro"] .btn-tema:not(:hover):not(:focus-visible),
-:root[data-tema="claro"] .btn-cerrar-sesion:not(:hover) {
+:root[data-tema="claro"] 
+.formulario-busqueda:not(:focus-within),
+:root[data-tema="claro"] 
+.btn-tema:not(:hover):not(:focus-visible) {
     border-color: #000;
 }
 
@@ -240,12 +222,33 @@ main:not(.colapsado) .titulo-body {
 :root[data-tema="claro"] .formulario-busqueda .icono-busqueda,
 :root[data-tema="claro"] .formulario-busqueda input[type="search"],
 :root[data-tema="claro"] .formulario-busqueda .boton-limpiar,
-:root[data-tema="claro"] .btn-tema:not(:hover):not(:focus-visible),
-:root[data-tema="claro"] .btn-cerrar-sesion:not(:hover) {
+:root[data-tema="claro"] .btn-tema:not(:hover):not(:focus-visible) {
     color: #000;
 }
 
 :root[data-tema="claro"] .formulario-busqueda input[type="search"]::placeholder {
     color: #000;
     opacity: 0.6;                      /* el texto de ayuda se distingue de lo escrito */
+}
+
+/* ===== MÓVILES: la barra deja lugar al botón de menú (a la izquierda) ===== */
+@media (max-width: 700px), (max-height: 500px) and (max-width: 950px) {
+    .header-contenido-superior {
+        padding-left: 56px;
+        gap: 8px !important;
+    }
+
+    /* El logo ya no hace falta: el botón de menú ocupa su lugar */
+    .titulo-body {
+        display: none !important;
+    }
+
+    .contenedor-busqueda {
+        min-width: 0;
+    }
+
+    /* El texto flotante del tema no cabe en pantallas táctiles */
+    .btn-tema[data-tooltip]::after {
+        display: none;
+    }
 }

@@ -230,6 +230,9 @@
 
 /* ===== PERFIL DEL MÉDICO (parte baja del sidebar) ===== */
 .perfil-sidebar {
+    display: flex;                    /* perfil a la izquierda, cerrar sesión al costado */
+    align-items: center;
+    gap: 4px;
     margin-top: auto;                 /* lo empuja al fondo del menú */
     padding-top: 16px;
     border-top: 1px solid var(--color-borde);
@@ -239,7 +242,8 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     padding: 10px 14px;
     background: transparent;
     border: 0;
@@ -289,16 +293,66 @@
     color: var(--color-placeholder);
 }
 
+/* Botón de cerrar sesión (debajo del perfil) */
+.btn-cerrar-sesion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 10px;
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    color: var(--color-placeholder);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-cerrar-sesion svg {
+    flex-shrink: 0;
+}
+
+.btn-cerrar-sesion:hover {
+    background-color: var(--color-error);
+    color: #ffffff;
+}
+
 /* Con el menú minimizado se oculta: el ícono de la barra superior sigue disponible */
 #sidebar.colapsado .perfil-sidebar {
     display: none !important;
 }
 
-/* ===== MÓVILES ===== */
-@media (max-width: 700px) {
+/* ===== TABLETAS: menú un poco más angosto ===== */
+@media (min-width: 701px) and (max-width: 1024px) {
     #sidebar {
-        position: static;
-        width: 100%;
-        height: auto;
+        width: 240px;
+    }
+}
+
+/* ===== MÓVILES: el menú es un panel que se abre encima del contenido ===== */
+@media (max-width: 700px), (max-height: 500px) and (max-width: 950px) {
+    #sidebar {
+        width: min(280px, 85vw);
+        height: 100dvh;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Cerrado: se esconde por completo (no hay carril de íconos) */
+    #sidebar.colapsado {
+        width: min(280px, 85vw) !important;
+        padding: 24px 20px !important;
+        background-color: var(--color-fondo) !important;
+        transform: translateX(-110%);
+        pointer-events: none;
+        visibility: hidden;
+        transition: transform 0.3s ease, visibility 0s linear 0.3s;
+    }
+
+    /* Al estar cerrado se vuelve a mostrar lo que el modo "solo íconos" escondía */
+    #sidebar.colapsado .nombre-sidebar,
+    #sidebar.colapsado .btn-cerrar-sidebar,
+    #sidebar.colapsado .logo-sidebar,
+    #sidebar.colapsado .menu-botones .boton span {
+        display: revert !important;
     }
 }
