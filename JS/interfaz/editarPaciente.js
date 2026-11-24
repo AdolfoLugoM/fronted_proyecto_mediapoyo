@@ -1,6 +1,6 @@
 // Edición de los datos de un paciente desde el lápiz de cada fila de la tabla de resultados.
 //
-// - busqueda.js crea el lápiz y llama a abrirEdicion(paciente).
+// - buscarPaciente.js crea el lápiz y llama a abrirEdicion(paciente).
 // - "Cancelar" (o Escape) cierra el modal sin tocar nada.
 // - "Guardar" valida, manda SOLO los campos que cambiaron al servicio y, si sale bien,
 //   avisa al resto de la app con el evento 'paciente-actualizado'
@@ -57,7 +57,7 @@ function leerFormulario() {
     return paciente;
 }
 
-// Solo lo que de verdad cambió: así el servidor (y la auditoría) saben qué se modificó
+// Solo lo que de verdad cambió: así el servidor sabe qué se modificó
 function obtenerCambios(original, editado) {
     const cambios = {};
     for (const propiedad of Object.values(CAMPOS)) {

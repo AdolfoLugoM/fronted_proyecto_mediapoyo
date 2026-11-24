@@ -2,11 +2,10 @@
 //   - Pastel:  las 5 enfermedades más diagnosticadas del año (siempre por año).
 //   - Barras:  total anual por región de las 5 enfermedades del año.
 //   - Líneas:  casos mensuales de esas 5 enfermedades, una línea por región.
-// Los datos llegan desde tendenciasServicio.js (JSON o backend): este archivo solo dibuja.
+// Los datos llegan desde tendenciasServicio.js (vienen del backend): este archivo solo dibuja.
 // Chart.js se carga con un <script> clásico en index.html, antes de main.js.
 
 import { obtenerTopEnfermedades } from '../servicios/tendenciasServicio.js';
-import { USAR_API } from '../config.js';
 
 const LIMITE = 5;
 
@@ -22,7 +21,6 @@ const lienzoLinea = document.getElementById('grafica-linea');
 const lienzoBarras = document.getElementById('grafica-barras');
 const lienzoPastel = document.getElementById('grafica-pastel');
 const mensaje = document.getElementById('mensaje-graficas');
-const notaDatos = document.querySelector('.nota-datos');
 
 function mostrarError(texto) {
     if (!mensaje) return;
@@ -152,9 +150,7 @@ async function cargarYDibujar() {
     ultimaCarga = Date.now();
 
     if (top.enfermedades.length === 0) {
-        mostrarError(USAR_API
-            ? 'Todavía no hay consultas registradas este año. Las gráficas aparecerán cuando las haya.'
-            : 'No hay enfermedades registradas para mostrar.');
+        mostrarError('Todavía no hay consultas registradas este año. Las gráficas aparecerán cuando las haya.');
         return false;
     }
 
@@ -166,7 +162,7 @@ async function cargarYDibujar() {
     return true;
 }
 
-// Con el backend, las consultas cambian mientras se usa la aplicación: al volver a la vista inicial
+// Las consultas cambian mientras se usa la aplicación: al volver a la vista inicial
 // (por ejemplo, después de guardar una consulta) se actualizan las gráficas
 function actualizarAlVolverAlInicio() {
     const vista = document.getElementById('vista-inicio');
@@ -183,8 +179,6 @@ function actualizarAlVolverAlInicio() {
 async function iniciar() {
     if (!lienzoLinea || !lienzoBarras || !lienzoPastel) return;
 
-    if (notaDatos) notaDatos.hidden = USAR_API;     // "Datos simulados" solo cuando se usan los JSON
-
     if (typeof Chart === 'undefined') {
         mostrarError('No se pudo cargar Chart.js. Revisa tu conexión o la etiqueta <script> del index.');
         return;
@@ -193,15 +187,13 @@ async function iniciar() {
     aplicarEstiloBase();
     
     redibujarAlCambiarTema();
-    if (USAR_API) actualizarAlVolverAlInicio();
+    actualizarAlVolverAlInicio();
 
     try {
         await cargarYDibujar();
     } catch (error) {
         console.error('Error al cargar los datos de las gráficas:', error);
-        mostrarError(USAR_API
-            ? 'No se pudieron cargar las tendencias. Revisa que el servidor (backend) esté encendido.'
-            : 'No se pudieron cargar los datos. Abre la página con Live Server y revisa la ruta del JSON.');
+        mostrarError('No se pudieron cargar las tendencias. Revisa que el servidor (backend) esté encendido.');
     }
 }
 

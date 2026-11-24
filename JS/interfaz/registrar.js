@@ -1,7 +1,7 @@
 // Página de registro (registrar.html): crea la cuenta de un médico y lo lleva al inicio de sesión.
 import { registrarMedico } from '../servicios/sesionServicio.js';
 import './validacion.js';
-import './tooltips.js';
+import './mensajesEmergentes.js';
 
 const formulario = document.getElementById('formulario-registro');
 const clave = document.getElementById('clave');

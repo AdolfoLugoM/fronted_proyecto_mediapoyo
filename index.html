@@ -13,14 +13,14 @@
     <link rel="stylesheet" href="CSS/Navegador.css">
     <link rel="stylesheet" href="CSS/Sidebar.css">
     <link rel="stylesheet" href="CSS/Alertas.css">
-    <link rel="stylesheet" href="CSS/RegistroPaciente.css">
+    <link rel="stylesheet" href="CSS/NuevoPaciente.css">
     <link rel="stylesheet" href="CSS/Consulta.css">
     <link rel="stylesheet" href="CSS/BuscarEnfermedad.css">
     <link rel="stylesheet" href="CSS/GestionCitas.css">
     <link rel="stylesheet" href="CSS/Graficas.css">
-    <link rel="stylesheet" href="CSS/BusquedaPacientes.css">
+    <link rel="stylesheet" href="CSS/BuscarPaciente.css">
     <link rel="stylesheet" href="CSS/Historial.css">
-    <link rel="stylesheet" href="CSS/Editar_Paciente.css">
+    <link rel="stylesheet" href="CSS/EditarPaciente.css">
     <link rel="stylesheet" href="CSS/EditarPerfil.css">
     
     <script>try{if(localStorage.getItem("tema")==="claro")document.documentElement.dataset.tema="claro"}catch(e){}</script>
@@ -193,10 +193,6 @@
             
             <p id="mensaje-graficas" class="mensaje-graficas" hidden></p>
             
-            <div class="controles-graficas">
-                <span class="nota-datos">Datos simulados</span>
-            </div>
-            
             <div class="rejilla-graficas">
                 <article class="tarjeta-grafica">
                     <h3>Distribución por enfermedad (año)</h3>
@@ -360,7 +356,7 @@
                     <div class="enfermedades-sugeridas" id="enfermedades-sugeridas" aria-live="polite" hidden></div>
                 </div>
                 
-                <!-- Enfermedad (obligatoria): se escribe y la lista propone coincidencias, igual que los síntomas -->
+                <!-- Enfermedad: se escribe y la lista propone coincidencias, igual que los síntomas -->
                 <div class="campo">
                     <label for="consulta-enfermedad">Enfermedad (diagnóstico)</label>
                     
@@ -419,7 +415,7 @@
                         </div>
                         
                         <label for="cita-hora">Hora</label>
-                        <input type="time" id="cita-hora" name="hora" required>
+                        <select id="cita-hora" name="hora" required></select>
                         
                         <p id="cita-error" class="cita-error" role="alert" hidden></p>
                         
@@ -575,6 +571,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     
+    <!-- Modulos principales de JS -->
     <script type="module" src="JS/main.js"></script>
 </body>
 </html>

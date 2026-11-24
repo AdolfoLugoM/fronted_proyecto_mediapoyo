@@ -23,6 +23,14 @@ export function formatearFecha(fechaIso) {
 }
 
 /** "2026-09-14T10:30:00" -> "lunes, 14 de septiembre de 2026, 10:30" (hora local) */
-export function formatearFechaHora(fechaIso) {
+function formatearFechaHora(fechaIso) {
     return new Date(fechaIso).toLocaleString('es-MX', { dateStyle: 'full', timeStyle: 'short' });
+}
+
+
+/** Fecha y hora local con el formato de la API: "2026-10-20T09:30:00". Sin argumento, la hora actual. */
+export function fechaHoraLocal(fecha = new Date()) {
+    const dos = (n) => String(n).padStart(2, '0');
+    return `${fecha.getFullYear()}-${dos(fecha.getMonth() + 1)}-${dos(fecha.getDate())}` +
+        `T${dos(fecha.getHours())}:${dos(fecha.getMinutes())}:${dos(fecha.getSeconds())}`;
 }

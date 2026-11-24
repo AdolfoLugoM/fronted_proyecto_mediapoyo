@@ -23,11 +23,6 @@ Si prefieres usar Live Server (extensión de VS Code, puerto 5500):
   - Reinicia Live Server (Go Live) después de cambiar los ajustes y abre login.html desde la raíz de esta carpeta.
   - Si algo no funciona, usa servidor_dev.py: hace lo mismo sin depender de la extensión.
 
-Cambiar entre backend y simulación
-----------------------------------
-JS/config.js  ->  USAR_API = true  (backend)  |  false  (archivos de la carpeta JSON/, sin servidor)
-En modo simulación, usuario de prueba: elena.prado / Elena2026!  (ver JSON/medicos.json)
-
 Cómo está armado
 ----------------
 - Las pantallas (JS/interfaz/) no saben de HTTP: solo llaman a las funciones de JS/servicios/.
@@ -67,7 +62,6 @@ Diferencias con el diseño original (decisiones tomadas para no cambiar el backe
   del médico. Son conteos de las consultas de TODOS los médicos (no incluyen datos de pacientes).
 - Citas: el servidor solo impide dos citas a la misma hora exacta y fechas anteriores a hoy. El horario (08:00-20:00)
   y que no se empalmen citas de 30 minutos lo valida el frontend. "Eliminar" borra la cita.
-- Auditoría: sigue siendo solo del navegador (consola F12). El backend todavía no tiene tabla de auditoría.
 
 Cosas que el backend todavía no ofrece (y por eso no funcionan o se ven distinto)
 ---------------------------------------------------------------------------------

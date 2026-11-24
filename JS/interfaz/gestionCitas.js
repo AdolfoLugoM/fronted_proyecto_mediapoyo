@@ -10,7 +10,7 @@
 import { mostrarVista, marcarBoton } from './vistas.js';
 import {
     obtenerCitas, crearCita, actualizarCita, eliminarCita,
-    DURACION_CITA_MIN, HORA_APERTURA, HORA_CIERRE
+    DURACION_CITA_MIN, INTERVALO_CITA_MIN, HORA_APERTURA, HORA_CIERRE
 } from '../servicios/citasServicio.js';
 
 const PATRON_CURP = '[A-Z]{4}[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[HMX][A-Z]{2}[B-DF-HJ-NP-TV-Z]{3}[A-Z0-9][0-9]';
@@ -253,7 +253,7 @@ function iniciarCalendario() {
         noEventsText: 'No hay citas para mostrar',
         slotMinTime: `${HORA_APERTURA}:00`,
         slotMaxTime: `${HORA_CIERRE}:00`,
-        slotDuration: `00:${dosDigitos(DURACION_CITA_MIN)}:00`,
+        slotDuration: `00:${dosDigitos(INTERVALO_CITA_MIN)}:00`,   // casillas de 30 min; cada cita ocupa 2
         slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
         eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
         
@@ -330,9 +330,18 @@ boton?.addEventListener('click', () => {
 // ----- Formulario de la ventana -----
 if (formulario) {
     campoCurp.pattern = PATRON_CURP;
-    campoHora.min = HORA_APERTURA;
-    campoHora.max = ultimaHoraDeInicio();
-    campoHora.step = 900;              // de 15 en 15 minutos
+    // Lista de horas: solo en punto y y media, de la apertura a la última hora de inicio
+    // "Elige una hora" solo se ve en el campo vacío: no aparece en la lista ni se puede escoger
+    const indicacion = new Option('Elige una hora', '');
+    indicacion.disabled = true;
+    indicacion.hidden = true;
+    campoHora.add(indicacion);
+    const [hIni, mIni] = HORA_APERTURA.split(':').map(Number);
+    const [hFin, mFin] = ultimaHoraDeInicio().split(':').map(Number);
+    for (let min = hIni * 60 + mIni; min <= hFin * 60 + mFin; min += INTERVALO_CITA_MIN) {
+        const texto = `${dosDigitos(Math.floor(min / 60))}:${dosDigitos(min % 60)}`;
+        campoHora.add(new Option(texto, texto));
+    }
     
     campoCurp.addEventListener('input', () => {
         const { selectionStart, selectionEnd } = campoCurp;

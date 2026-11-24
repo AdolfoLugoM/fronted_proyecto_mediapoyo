@@ -12,7 +12,6 @@ import { obtenerSintomas } from '../servicios/sintomasServicio.js';
 import { obtenerEnfermedades, sugerirEnfermedades } from '../servicios/enfermedadesServicio.js';
 import { mostrarAviso } from './avisos.js';
 import { calcularEdad } from '../utilidades.js';
-import { USAR_API } from '../config.js';
 
 const MAX_SUGERENCIAS = 8;
 
@@ -96,9 +95,7 @@ async function cargarEnfermedades() {
     } catch (error) {
         console.error('Error al cargar las enfermedades:', error);
         buscadorEnfermedad.placeholder = 'No se pudo cargar el catálogo de enfermedades';
-        mostrarAviso(USAR_API
-            ? 'No se pudo cargar el catálogo de enfermedades. Cierra la consulta e inténtalo de nuevo: no se puede guardar sin elegir la enfermedad.'
-            : 'No se pudo cargar el catálogo de enfermedades. Aún puedes guardar la consulta sin diagnóstico.', 'error');
+        mostrarAviso('No se pudo cargar el catálogo de enfermedades. Cierra la consulta e inténtalo de nuevo: no se puede guardar sin elegir la enfermedad.', 'error');
     } finally {
         cargandoEnfermedades = false;
     }
@@ -277,7 +274,7 @@ function actualizarEstadoEnfermedad() {
     } else if (buscadorEnfermedad.value.trim() !== '') {
         estadoEnfermedad.textContent = 'Elige una enfermedad de la lista';
     } else {
-        estadoEnfermedad.textContent = USAR_API ? 'Elige la enfermedad del diagnóstico' : 'Sin diagnóstico (revisión)';
+        estadoEnfermedad.textContent = 'Elige la enfermedad del diagnóstico';
     }
 }
 
@@ -367,10 +364,8 @@ async function dibujarEnfermedadesSugeridas() {
         titulo.textContent = 'No se pudieron obtener sugerencias (el modelo no está disponible). Elige la enfermedad en la lista.';
     } else if (sugeridas.length === 0) {
         titulo.textContent = 'Ninguna enfermedad del catálogo tiene estos síntomas. Elígela en la lista si la conoces.';
-    } else if (USAR_API) {
-        titulo.textContent = 'Enfermedades más probables según el modelo. Es orientativo, no un diagnóstico: haz clic para elegirla.';
     } else {
-        titulo.textContent = 'Enfermedades con estos síntomas (haz clic para elegirla):';
+        titulo.textContent = 'Enfermedades más probables según el modelo. Es orientativo, no un diagnóstico: haz clic para elegirla.';
     }
     
     const botones = sugeridas.map(e => {
@@ -614,15 +609,13 @@ formulario?.addEventListener('submit', async (evento) => {
 
     // Si escribió algo en Enfermedad pero no eligió ninguna de la lista, no se adivina cuál quiso decir
     if (buscadorEnfermedad.value.trim() !== '' && !enfermedadElegida) {
-        mostrarAviso(USAR_API
-            ? 'Elige una enfermedad de la lista.'
-            : 'Elige una enfermedad de la lista o borra el campo para guardar sin diagnóstico.', 'error');
+        mostrarAviso('Elige una enfermedad de la lista.', 'error');
         buscadorEnfermedad.focus();
         return;
     }
 
-    // Con el backend, toda consulta lleva diagnóstico (la tabla Consultas no admite enfermedad vacía)
-    if (USAR_API && !enfermedadElegida) {
+    // Toda consulta lleva diagnóstico (la tabla Consultas no admite enfermedad vacía)
+    if (!enfermedadElegida) {
         mostrarAviso('Elige la enfermedad del diagnóstico para guardar la consulta.', 'error');
         buscadorEnfermedad.focus();
         return;

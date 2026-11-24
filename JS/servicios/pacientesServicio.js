@@ -1,57 +1,21 @@
-// Capa de acceso a datos de pacientes.
-// El resto de la app SOLO usa estas funciones: HOY leen un JSON y MAÑANA llaman a la API.
-// Para conectar la base de datos basta con poner USAR_API = true (y ajustar las URLs).
-//
-// Cada paciente es UN registro en toda la plataforma (CURP única).
-// Con el backend (USAR_API = true) el directorio de pacientes es COMPARTIDO: cualquier médico puede buscar
-// y ver a cualquier paciente. Lo que sí es privado son las CONSULTAS: cada médico solo ve las suyas
-// (las de otros médicos se abren con su llave; ver consultasServicio.js).
-// Con el JSON de pruebas (simulación) cada médico solo encuentra a los pacientes con los que se vinculó.
-//
-// El backend usa otros nombres de campos (snake_case) y otro código de sexo: aquí se traducen,
-// así el resto de la aplicación sigue trabajando con { fechaNacimiento, telefono, tipoSangre, sexo M/F }.
-// El backend no guarda correo electrónico (la tabla Pacientes no lo tiene).
-
-import { obtenerMedicoActual } from './sesionServicio.js';
-import { registrarAuditoria } from './auditoriaServicio.js';
-import { USAR_API } from '../config.js';
+// Servicio de pacientes: buscar, crear y actualizar pacientes.
+// Traduce entre los nombres que usa la página (fechaNacimiento) y los del servidor (fecha_nacimiento)
 import { pedir, falla } from './api.js';
 
-const URL_JSON = 'JSON/pacientes.json';     // ruta relativa a index.html
+// ----- Ayudantes de traducción -----
+// Piezas que convierten textos y datos entre el formato de la página y el del servidor
 
-// Campos que se pueden cambiar al editar (la lista de médicos nunca se toca desde aquí)
-const CAMPOS_EDITABLES = ['nombre', 'apellidos', 'curp', 'fechaNacimiento', 'sexo',
-    'telefono', 'correo', 'tipoSangre', 'notas'];
-
-// Lista única en memoria: la leen la búsqueda y la verificación de duplicados,
-// y a ella se suman los pacientes nuevos (viven aquí hasta recargar la página).
-let cachePacientes = null;
-
-async function cargarJSON() {
-    if (cachePacientes) return cachePacientes;
-    
-    const respuesta = await fetch(URL_JSON);
-    if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
-    
-    const datos = await respuesta.json();
-    cachePacientes = datos.pacientes;
-    return cachePacientes;
-}
-
-// Quita acentos y mayúsculas: "Lopéz" y "lopez" cuentan como lo mismo
+// Quita acentos y mayúsculas para comparar textos: "José" → "jose"
+// (normalize('NFD') separa la letra de su acento y el replace borra los acentos)
 function normalizar(texto) {
     return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 }
 
-const esperar = (ms) => new Promise(resolver => setTimeout(resolver, ms));
+// El sexo se escribe distinto: la página usa M/F y el servidor H/M
+const SEXO_A_API = { M: 'H', F: 'M' }; // página → servidor
+const SEXO_DE_API = { H: 'M', M: 'F' }; // servidor → página
 
-// ----- Traducción entre la aplicación y el backend -----
-
-// La aplicación usa M (masculino) / F (femenino); la base de datos usa H (hombre) / M (mujer)
-const SEXO_A_API = { M: 'H', F: 'M' };
-const SEXO_DE_API = { H: 'M', M: 'F' };
-
-// Paciente del backend -> paciente que entiende la aplicación
+// Convierte un paciente del servidor al formato que usa la página
 function deApi(p) {
     return {
         id: p.id,
@@ -60,292 +24,150 @@ function deApi(p) {
         curp: p.curp,
         fechaNacimiento: p.fecha_nacimiento,
         sexo: SEXO_DE_API[p.sexo] ?? p.sexo,
-        telefono: p.numero_telefonico ?? '',
+        telefono: p.numero_telefonico ?? '', // los campos opcionales que vienen null se dejan como texto vacío
         tipoSangre: p.tipo_de_sangre ?? '',
         notas: p.notas ?? ''
     };
 }
 
+// Convierte los datos de la página al formato del servidor; solo incluye los campos que vienen en 'campos'
+// (así, al actualizar, únicamente se envía lo que cambió)
+function haciaApi(campos) {
+    const salida = {};
+    // el servidor espera null en lugar de texto vacío en los campos opcionales
+    const vacioANulo = (valor) => (String(valor ?? '').trim() === '' ? null : String(valor).trim());
+
+    if ('nombre' in campos) salida.nombre = campos.nombre;
+    if ('apellidos' in campos) salida.apellidos = campos.apellidos;
+    if ('curp' in campos) salida.curp = String(campos.curp).trim().toUpperCase(); // la CURP siempre en mayúsculas
+    if ('fechaNacimiento' in campos) salida.fecha_nacimiento = campos.fechaNacimiento;
+    if ('sexo' in campos) salida.sexo = SEXO_A_API[campos.sexo] ?? campos.sexo;
+    if ('telefono' in campos) salida.numero_telefonico = vacioANulo(campos.telefono);
+    if ('tipoSangre' in campos) salida.tipo_de_sangre = vacioANulo(campos.tipoSangre);
+    if ('notas' in campos) salida.notas = vacioANulo(campos.notas);
+    return salida;
+}
+
 // ----- Búsqueda sin acentos -----
-// El servidor distingue acentos ("hernandez" no encuentra "Hernández") y el médico no escribe con acentos.
-// Para encontrar a la persona igual: se le piden al servidor los pacientes cuyo texto contiene los TRAMOS de
-// letras que nunca llevan acento (consonantes, sin la n por la ñ), que es un conjunto mayor que el buscado, y
-// aquí se afina comparando sin acentos. "hernandez" -> tramos "h", "r", "d", "z" -> servidor -> "Hernández" ✓.
-// Se revisan hasta TOPE_CANDIDATOS pacientes: en un directorio enorme una búsqueda muy corta podría dejar fuera
-// coincidencias (el servidor no ordena por relevancia); escribir más letras lo evita.
+// El servidor distingue acentos ("Jose" ≠ "José"), así que se le pide una búsqueda amplia y la página filtra
 
-const TOPE_CANDIDATOS = 500;
-const MAX_TRAMOS = 5;                          // el servidor acepta hasta 5 palabras por búsqueda
+const TOPE_CANDIDATOS = 500; // máximo de pacientes que se traen del servidor para filtrar aquí
+const MAX_TRAMOS = 5; // máximo de pedazos de texto que se mandan al servidor
 
+// Parte lo escrito en pedazos sin vocales ni n/ñ (que son las letras que llevan acento o cambian),
+// para que los acentos no afecten la búsqueda; se quedan los 5 pedazos más largos
 function tramosSinAcento(termino) {
     return normalizar(termino).split(/[\saeiounñ]+/).filter(Boolean)
         .sort((a, b) => b.length - a.length)
         .slice(0, MAX_TRAMOS);
 }
 
+// Busca pacientes sin importar acentos ni mayúsculas, en nombre, apellidos o CURP
 async function buscarSinAcentos(termino) {
+    // 1) las palabras que escribió el usuario, ya normalizadas
     const palabras = normalizar(termino).split(/\s+/).filter(Boolean);
-    // Sin tramos (por ejemplo "ae") no hay nada que pedir de forma precisa: se busca el texto tal cual
+
+    // 2) lo que se manda al servidor: los pedazos sin acentos (o lo escrito, si no quedó ninguno)
     const buscar = tramosSinAcento(termino).join(' ') || termino;
 
+    // 3) trae los candidatos página por página (100 por petición) hasta el tope
     const candidatos = [];
     for (let offset = 0; offset < TOPE_CANDIDATOS; offset += 100) {
         const resp = await pedir('/pacientes', { parametros: { buscar, limit: 100, offset } });
         if (!resp.ok) throw new Error(`HTTP ${resp.estado}`);
 
         candidatos.push(...resp.datos.items);
-        if (resp.datos.items.length === 0 || candidatos.length >= resp.datos.total) break;
+        if (resp.datos.items.length === 0 || candidatos.length >= resp.datos.total) break; // ya no hay más
     }
 
+    // 4) se queda con los que contienen TODAS las palabras escritas (every), comparando sin acentos
     return candidatos.map(deApi).filter(p => {
         const texto = normalizar(`${p.nombre} ${p.apellidos} ${p.curp}`);
         return palabras.every(palabra => texto.includes(palabra));
     });
 }
 
-// Campos de la aplicación -> campos del backend (solo los que vienen; "" en un opcional = borrarlo = null)
-function haciaApi(campos) {
-    const salida = {};
-    const vacioANulo = (valor) => (String(valor ?? '').trim() === '' ? null : String(valor).trim());
+// ----- Funciones que usa la página -----
 
-    if ('nombre' in campos) salida.nombre = campos.nombre;
-    if ('apellidos' in campos) salida.apellidos = campos.apellidos;
-    if ('curp' in campos) salida.curp = String(campos.curp).trim().toUpperCase();
-    if ('fechaNacimiento' in campos) salida.fecha_nacimiento = campos.fechaNacimiento;
-    if ('sexo' in campos) salida.sexo = SEXO_A_API[campos.sexo] ?? campos.sexo;
-    if ('telefono' in campos) salida.numero_telefonico = vacioANulo(campos.telefono);
-    if ('tipoSangre' in campos) salida.tipo_de_sangre = vacioANulo(campos.tipoSangre);
-    if ('notas' in campos) salida.notas = vacioANulo(campos.notas);
-    return salida;               // "correo" se descarta: el backend no lo guarda
-}
-
-// Lo que la pantalla puede ver de un paciente: todo menos la lista de sus médicos
-function publico({ medicos, ...paciente }) {
-    return paciente;
-}
-
-const esDe = (paciente, medicoId) => (paciente.medicos ?? []).includes(medicoId);
-
-/**
-* Busca pacientes por nombre, apellidos o CURP, solo entre los pacientes del médico en sesión.
-* Devuelve siempre la misma forma, venga del JSON o de la API:
-*   { total, pagina, porPagina, resultados: [ { id, nombre, apellidos, curp, ... } ] }
-*/
+// Busca pacientes y devuelve solo la página de resultados pedida (la paginación se hace aquí)
 export async function buscarPacientes(termino, { pagina = 1, porPagina = 10 } = {}) {
-    if (USAR_API) {
-        const coincidencias = await buscarSinAcentos(termino);
-        const inicio = (pagina - 1) * porPagina;
-        return { total: coincidencias.length, pagina, porPagina, resultados: coincidencias.slice(inicio, inicio + porPagina) };
-    }
-
-    await esperar(300);                        // simula la demora de una red real
-    
-    const [pacientes, medico] = await Promise.all([cargarJSON(), obtenerMedicoActual()]);
-    if (!medico) return { total: 0, pagina, porPagina, resultados: [] };
-    
-    const buscado = normalizar(termino);
-    const coincidencias = pacientes.filter(p =>
-        esDe(p, medico.id) &&
-        normalizar(`${p.nombre} ${p.apellidos} ${p.curp}`).includes(buscado)
-    );
-    
+    const coincidencias = await buscarSinAcentos(termino);
     const inicio = (pagina - 1) * porPagina;
-    return {
-        total: coincidencias.length,
-        pagina,
-        porPagina,
-        resultados: coincidencias.slice(inicio, inicio + porPagina).map(publico)
-    };
+    return { total: coincidencias.length, pagina, porPagina, resultados: coincidencias.slice(inicio, inicio + porPagina) };
 }
 
-/** Obtiene un paciente por su id (sin la lista de sus médicos). */
-export async function obtenerPaciente(id) {
-    if (USAR_API) {
-        const resp = await pedir(`/pacientes/${encodeURIComponent(id)}`);
-        if (resp.estado === 404) return null;
-        if (!resp.ok) throw new Error(`HTTP ${resp.estado}`);
-        return deApi(resp.datos);
-    }
-
-    await esperar(150);
-    const paciente = (await cargarJSON()).find(p => p.id === Number(id));
-    return paciente ? publico(paciente) : null;
+// Trae un paciente por su id; null si no existe (404)
+async function obtenerPaciente(id) {
+    const resp = await pedir(`/pacientes/${encodeURIComponent(id)}`);
+    if (resp.estado === 404) return null;
+    if (!resp.ok) throw new Error(`HTTP ${resp.estado}`);
+    return deApi(resp.datos);
 }
 
-/**
-* ¿El paciente es de ese médico? Solo lo usan las otras capas de servicio
-* (por ejemplo, para decidir si un médico puede abrir un historial). Con API, lo decide el servidor.
-*/
-export async function esPacienteDelMedico(pacienteId, medicoId) {
-    const paciente = (await cargarJSON()).find(p => p.id === Number(pacienteId));
-    return paciente ? esDe(paciente, medicoId) : false;
-}
-
-/**
-* SOLO SIMULACIÓN (la usa citasServicio.js): el paciente con esa CURP, si es de ese médico.
-* Si es de otro médico responde null igual, para no revelar que existe.
-* Con la API, el servidor resuelve la CURP al agendar la cita.
-*/
-export async function buscarPacientePorCurp(curp, medicoId) {
-    if (USAR_API) {
-        // El directorio es compartido: se busca por CURP y se toma la coincidencia exacta
-        const buscada = String(curp ?? '').trim().toUpperCase();
-        if (!buscada) return null;
-        const resp = await pedir('/pacientes', { parametros: { buscar: buscada, limit: 10 } });
-        if (!resp.ok) throw new Error(`HTTP ${resp.estado}`);
-        const exacto = resp.datos.items.find(p => p.curp.toUpperCase() === buscada);
-        return exacto ? deApi(exacto) : null;
-    }
-
+// Busca un paciente por su CURP exacta; null si no hay ninguno
+export async function buscarPacientePorCurp(curp) {
     const buscada = String(curp ?? '').trim().toUpperCase();
-    const paciente = (await cargarJSON()).find(p => p.curp.toUpperCase() === buscada);
-    return paciente && esDe(paciente, medicoId) ? publico(paciente) : null;
+    if (!buscada) return null;
+
+    const resp = await pedir('/pacientes', { parametros: { buscar: buscada, limit: 10 } });
+    if (!resp.ok) throw new Error(`HTTP ${resp.estado}`);
+
+    // el servidor busca coincidencias parciales, así que se elige la que sea exactamente igual
+    const exacto = resp.datos.items.find(p => p.curp.toUpperCase() === buscada);
+    return exacto ? deApi(exacto) : null;
 }
 
-/**
-* SOLO SIMULACIÓN (la usa citasServicio.js): lo mínimo de varios pacientes para mostrarlos en la agenda.
-* Devuelve un Map id -> { id, nombre, apellidos, curp }.
-*/
-const resumenEnMemoria = new Map();      // con la API: id -> resumen ya pedido (no se vuelve a pedir al mismo paciente)
+// Pacientes ya consultados: id → datos básicos (así no se pide dos veces el mismo paciente)
+const resumenEnMemoria = new Map();
 
+// Devuelve nombre, apellidos y CURP de varios pacientes a la vez, en un Map (id → datos)
 export async function resumenPacientes(ids) {
-    if (USAR_API) {
-        const resumen = new Map();
-        const faltan = [...new Set(ids.map(Number))].filter(id => !resumenEnMemoria.has(id));
-
-        await Promise.all(faltan.map(async (id) => {
-            const paciente = await obtenerPaciente(id);
-            if (paciente) {
-                resumenEnMemoria.set(id, { id, nombre: paciente.nombre, apellidos: paciente.apellidos, curp: paciente.curp });
-            }
-        }));
-
-        for (const id of ids.map(Number)) if (resumenEnMemoria.has(id)) resumen.set(id, resumenEnMemoria.get(id));
-        return resumen;
-    }
-
-    const buscados = new Set(ids.map(Number));
     const resumen = new Map();
-    
-    for (const p of await cargarJSON()) {
-        if (buscados.has(p.id)) resumen.set(p.id, { id: p.id, nombre: p.nombre, apellidos: p.apellidos, curp: p.curp });
-    }
+    // quita ids repetidos (Set) y los que ya están en memoria: solo se piden los que faltan
+    const faltan = [...new Set(ids.map(Number))].filter(id => !resumenEnMemoria.has(id));
+
+    // pide los que faltan al mismo tiempo (Promise.all) en lugar de uno por uno
+    await Promise.all(faltan.map(async (id) => {
+        const paciente = await obtenerPaciente(id);
+        if (paciente) {
+            resumenEnMemoria.set(id, { id, nombre: paciente.nombre, apellidos: paciente.apellidos, curp: paciente.curp });
+        }
+    }));
+
+    // arma el resultado con todos los ids pedidos (los que ya estaban y los recién traídos)
+    for (const id of ids.map(Number)) if (resumenEnMemoria.has(id)) resumen.set(id, resumenEnMemoria.get(id));
     return resumen;
 }
 
-/**
-* Registra un paciente para el médico en sesión.
-* - CURP nueva: crea el registro.
-* - CURP que ya existe con OTRO médico: no la duplica; solo vincula al paciente con este médico.
-*   El mensaje es el mismo que en un registro nuevo, para no revelar que se atiende con otro médico.
-* - CURP que ya es de ESTE médico: la rechaza (CURP_DUPLICADA).
-* Siempre responde { success: true, paciente } o { success: false, codigo, message }.
-* Con la API real, el servidor debe volver a validar (y la CURP debe ser UNIQUE en la tabla).
-*/
+// Registra un paciente nuevo
 export async function crearPaciente(paciente) {
-    if (USAR_API) {
-        const resp = await pedir('/pacientes', { metodo: 'POST', cuerpo: haciaApi(paciente) });
+    const resp = await pedir('/pacientes', { metodo: 'POST', datosUser: haciaApi(paciente) });
 
-        if (resp.ok) return { success: true, paciente: deApi(resp.datos) };
-        if (resp.estado === 409) {
-            // Como el directorio es compartido, avisar que ya existe no revela nada: el médico lo puede buscar
-            return {
-                success: false,
-                codigo: 'CURP_DUPLICADA',
-                message: 'Ya existe un paciente con esa CURP. Búscalo en la barra superior.'
-            };
-        }
-        return falla(resp, 'No se pudo guardar el paciente.');
+    if (resp.ok) return { success: true, paciente: deApi(resp.datos) };
+    if (resp.estado === 409) { // 409: ya existe un paciente con esa CURP
+        return {
+            success: false,
+            codigo: 'CURP_DUPLICADA',
+            message: 'Ya existe un paciente con esa CURP. Búscalo en la barra superior.'
+        };
     }
-
-    await esperar(300);
-    
-    const medico = await obtenerMedicoActual();
-    if (!medico) {
-        return { success: false, codigo: 'SIN_SESION', message: 'Inicia sesión como médico para registrar pacientes.' };
-    }
-    
-    const pacientes = await cargarJSON();
-    const curp = paciente.curp.trim().toUpperCase();
-    const existente = pacientes.find(p => p.curp.toUpperCase() === curp);
-    
-    if (existente) {
-        if (esDe(existente, medico.id)) {
-            return {
-                success: false,
-                codigo: 'CURP_DUPLICADA',
-                message: 'Este paciente ya está entre tus pacientes. Búscalo en la barra superior.'
-            };
-        }
-
-        // Se atiende con otro médico: se vincula sin crear otro registro y sin cambiar sus datos
-        existente.medicos.push(medico.id);
-        registrarAuditoria('vincular_paciente', { medicoId: medico.id, pacienteId: existente.id });
-        return { success: true, paciente: publico(existente) };
-    }
-    
-    const nuevo = {
-        id: Math.max(0, ...pacientes.map(p => p.id)) + 1,
-        ...paciente,
-        curp,
-        medicos: [medico.id]
-    };
-    pacientes.push(nuevo);                     // desde ahora también aparece en la búsqueda de este médico
-    registrarAuditoria('registrar_paciente', { medicoId: medico.id, pacienteId: nuevo.id });
-    return { success: true, paciente: publico(nuevo) };
+    return falla(resp, 'No se pudo guardar el paciente.');
 }
 
-/**
-* Actualiza los datos de un paciente del médico en sesión.
-* Recibe SOLO los campos que cambiaron. La lista de médicos nunca se puede tocar desde aquí.
-* Responde { success: true, paciente } o { success: false, codigo, message }.
-* Con la API real, el servidor debe volver a validar todo (permisos, formato y CURP única).
-*/
+// Cambia datos de un paciente existente (PATCH: solo se envían los campos que cambiaron)
 export async function actualizarPaciente(id, cambios) {
-    if (USAR_API) {
-        const resp = await pedir(`/pacientes/${encodeURIComponent(id)}`, {
-            metodo: 'PATCH',                   // PATCH = actualización parcial
-            cuerpo: haciaApi(cambios)
-        });
+    const resp = await pedir(`/pacientes/${encodeURIComponent(id)}`, {
+        metodo: 'PATCH',
+        datosUser: haciaApi(cambios)
+    });
 
-        if (resp.ok) return { success: true, paciente: deApi(resp.datos) };
-        if (resp.estado === 404) {
-            return { success: false, codigo: 'NO_ENCONTRADO', message: 'No se encontró a este paciente.' };
-        }
-        if (resp.estado === 409) {
-            return { success: false, codigo: 'CURP_DUPLICADA', message: 'Esa CURP ya pertenece a otro paciente registrado.' };
-        }
-        return falla(resp, 'No se pudieron guardar los cambios.');
+    // respuesta: éxito, paciente no encontrado (404), CURP ya usada por otro (409) o error general
+    if (resp.ok) return { success: true, paciente: deApi(resp.datos) };
+    if (resp.estado === 404) {
+        return { success: false, codigo: 'NO_ENCONTRADO', message: 'No se encontró a este paciente.' };
     }
-
-    await esperar(300);
-    
-    const medico = await obtenerMedicoActual();
-    if (!medico) {
-        return { success: false, codigo: 'SIN_SESION', message: 'Inicia sesión como médico para editar pacientes.' };
+    if (resp.estado === 409) {
+        return { success: false, codigo: 'CURP_DUPLICADA', message: 'Esa CURP ya pertenece a otro paciente registrado.' };
     }
-    
-    const pacientes = await cargarJSON();
-    const paciente = pacientes.find(p => p.id === Number(id));
-    if (!paciente || !esDe(paciente, medico.id)) {
-        return { success: false, codigo: 'NO_ENCONTRADO', message: 'No se encontró a este paciente entre tus pacientes.' };
-    }
-    
-    // Solo se copian los campos permitidos (aunque manden otros, se ignoran)
-    const limpios = {};
-    for (const campo of CAMPOS_EDITABLES) {
-        if (campo in cambios) limpios[campo] = String(cambios[campo] ?? '').trim();
-    }
-    
-    if ('curp' in limpios) {
-        limpios.curp = limpios.curp.toUpperCase();
-        const otro = pacientes.find(p => p.id !== paciente.id && p.curp.toUpperCase() === limpios.curp);
-        if (otro) {
-            return { success: false, codigo: 'CURP_DUPLICADA', message: 'Esa CURP ya pertenece a otro paciente registrado.' };
-        }
-    }
-    
-    Object.assign(paciente, limpios);
-    registrarAuditoria('editar_paciente', { medicoId: medico.id, pacienteId: paciente.id, campos: Object.keys(limpios) });
-    return { success: true, paciente: publico(paciente) };
+    return falla(resp, 'No se pudieron guardar los cambios.');
 }

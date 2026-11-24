@@ -1,6 +1,6 @@
 /* ==========================================================================
 AUTH (compartido por Login y Registrar): fondo centrado, tarjeta, campos y botón
-Orden de carga: Base.css, Auth.css y después Login.css o Registrar.css
+Orden de carga: Base.css, Autentificacion.css y después Login.css o Registrar.css
 ========================================================================== */
 
 body {

@@ -91,7 +91,7 @@ body {
     
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
-/* Mensajes emergentes (los crea tooltips.js a partir del atributo title) */
+/* Mensajes emergentes (los crea mensajesEmergentes.js a partir del atributo title) */
 .tooltip-flotante {
     position: fixed;
     z-index: 10000;

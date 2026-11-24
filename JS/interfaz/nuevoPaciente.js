@@ -6,7 +6,7 @@ import { mostrarVista, marcarBoton, irAlInicio } from './vistas.js';
 import { crearPaciente } from '../servicios/pacientesServicio.js';
 import { abrirConsulta } from './consulta.js';
 import { mostrarAviso } from './avisos.js';
-import { fechaHoraLocal } from '../servicios/auditoriaServicio.js';
+import { fechaHoraLocal } from '../utilidades.js';
 
 const boton = document.getElementById('boton1');
 const formPaciente = document.getElementById('formulario-paciente');

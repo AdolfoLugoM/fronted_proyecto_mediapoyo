@@ -1,7 +1,5 @@
 import { mostrarVista, marcarBoton } from './vistas.js';
 import { obtenerEnfermedadesConSintomas, obtenerSintomasDeEnfermedad } from '../servicios/enfermedadesServicio.js';
-import { obtenerSintomas } from '../servicios/sintomasServicio.js';
-import { USAR_API } from '../config.js';
 
 const boton = document.getElementById('boton4');
 const buscador = document.getElementById('buscador-enfermedad');
@@ -9,28 +7,26 @@ const contador = document.getElementById('contador-enfermedades');
 const lista = document.getElementById('lista-enfermedades');
 const detalle = document.getElementById('detalle-enfermedad');
 
-let enfermedades = [];                 // [ { id, nombre, descripcion, sintomaIds } ] (con el backend sintomaIds es null)
-const sintomasCargados = new Map();    // con el backend: enfermedadId -> sus síntomas, pedidos al elegirla
+let enfermedades = [];                 // [ { id, nombre, descripcion } ]
+const sintomasCargados = new Map();    // enfermedadId -> sus síntomas, pedidos al elegirla
 const cargando = new Set();            // enfermedades cuyos síntomas se están pidiendo ahora
-let sintomasPorId = new Map();         // id -> { id, nombre, categoria }
 let seleccionadaId = null;
 let cargado = false;
 
 // Minúsculas y sin acentos, para que "respiratoria" encuentre "respiratória" y no importen las mayúsculas
 const normalizar = (texto) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
+// Síntomas ya pedidos de esa enfermedad (se piden la primera vez que se elige)
 function sintomasDe(enfermedad) {
-    if (!enfermedad.sintomaIds) return sintomasCargados.get(enfermedad.id) ?? [];
-    return enfermedad.sintomaIds.map(id => sintomasPorId.get(id)).filter(Boolean);
+    return sintomasCargados.get(enfermedad.id) ?? [];
 }
 
-// Con el backend solo se conocen los síntomas de las enfermedades ya elegidas: el filtro mira solo los nombres
+// El filtro mira solo los nombres de las enfermedades (sus síntomas se ven al elegirla)
 function coincide(enfermedad, consulta) {
     if (consulta === '') return true;
     // Si lo escrito son solo dígitos, también se busca por id (coincidencia exacta: "1" no trae el 10, 11…)
     if (/^\d+$/.test(consulta) && enfermedad.id === Number(consulta)) return true;
-    const textos = [enfermedad.nombre, ...(enfermedad.sintomaIds ? sintomasDe(enfermedad).map(s => s.nombre) : [])];
-    return textos.some(t => normalizar(t).includes(consulta));
+    return normalizar(enfermedad.nombre).includes(consulta);
 }
 
 function dibujarLista() {
@@ -52,11 +48,6 @@ function dibujarLista() {
         const nombre = document.createElement('span');
         nombre.textContent = enfermedad.nombre;
         boton.append(nombre);
-        if (enfermedad.sintomaIds) {
-            const cantidad = document.createElement('small');
-            cantidad.textContent = `${enfermedad.sintomaIds.length} síntomas`;
-            boton.append(cantidad);
-        }
         boton.addEventListener('click', () => seleccionar(enfermedad.id));
         item.append(boton);
         lista.append(item);
@@ -119,9 +110,9 @@ function dibujarDetalle() {
     detalle.append(chips);
 }
 
-// Con el backend, los síntomas de una enfermedad se piden la primera vez que se elige
+// Los síntomas de una enfermedad se piden la primera vez que se elige
 async function cargarSintomasDe(enfermedad) {
-    if (enfermedad.sintomaIds || sintomasCargados.has(enfermedad.id) || cargando.has(enfermedad.id)) return;
+    if (sintomasCargados.has(enfermedad.id) || cargando.has(enfermedad.id)) return;
 
     cargando.add(enfermedad.id);
     try {
@@ -142,7 +133,7 @@ function seleccionar(id) {
     const enfermedad = enfermedades.find(e => e.id === id);
     if (enfermedad) {
         cargando.has(id) || cargarSintomasDe(enfermedad);
-        if (!enfermedad.sintomaIds && !sintomasCargados.has(id)) dibujarDetalle();     // muestra "Cargando síntomas…"
+        if (!sintomasCargados.has(id)) dibujarDetalle();     // muestra "Cargando síntomas…"
     }
 }
 
@@ -150,12 +141,7 @@ async function cargar() {
     if (cargado) return;
     contador.textContent = 'Cargando enfermedades…';
     try {
-        const [listaEnfermedades, catalogoSintomas] = await Promise.all([
-            obtenerEnfermedadesConSintomas(),
-            USAR_API ? [] : obtenerSintomas()          // con el backend los nombres llegan con cada enfermedad
-        ]);
-        enfermedades = listaEnfermedades;
-        sintomasPorId = new Map(catalogoSintomas.map(s => [s.id, s]));
+        enfermedades = await obtenerEnfermedadesConSintomas();
         cargado = true;
         dibujarLista();
     } catch (error) {
@@ -164,12 +150,10 @@ async function cargar() {
     }
 }
 
-if (USAR_API) {
-    // Con el backend se filtra por nombre de enfermedad (sus síntomas se ven al elegirla)
-    buscador.placeholder = 'Filtrar enfermedades...';
-    const etiqueta = document.getElementById('etiqueta-buscador-enfermedad');
-    if (etiqueta) etiqueta.textContent = 'Filtrar enfermedades';
-}
+// Se filtra por nombre de enfermedad (sus síntomas se ven al elegirla)
+buscador.placeholder = 'Filtrar enfermedades...';
+const etiqueta = document.getElementById('etiqueta-buscador-enfermedad');
+if (etiqueta) etiqueta.textContent = 'Filtrar enfermedades';
 
 boton?.addEventListener('click', () => {
     marcarBoton(boton);

@@ -30,12 +30,6 @@ GRÁFICAS: estilos de la vista inicial (#vista-inicio)
     border-color: transparent;
 }
 
-.nota-datos {
-    margin-left: auto;
-    font-size: 0.75rem;
-    color: var(--color-placeholder);
-}
-
 /* Dos columnas: la gráfica de líneas ocupa toda la fila y barras y pastel van debajo, lado a lado */
 .rejilla-graficas {
     display: grid;
